@@ -34,7 +34,7 @@ it('strict status and write rejection before requests',async()=>{
   for(const result of [{},{code:0,data:{needs_setup:'false',step:'completed'}},{code:1,data:{needs_setup:false,step:'completed'}}]){f.mockResolvedValueOnce({ok:true,headers:new Headers({'Content-Type':'application/json'}),json:async()=>result});await expect(api.getSetupStatus()).rejects.toThrow()}
   f.mockResolvedValueOnce({ok:true,headers:new Headers({'Content-Type':'application/json; charset=utf-8'}),json:async()=>({code:0,data:{needs_setup:false,step:'completed'}})})
   expect(await api.getSetupStatus()).toEqual({needs_setup:false,step:'completed'})
-  expect(f.mock.calls.at(-1)).toEqual([window.location.origin+'/setup/status',{credentials:'omit',redirect:'error',cache:'no-store'}])
+  expect(f.mock.calls.at(-1)).toEqual([window.location.origin+'/setup/status',{credentials:'omit',redirect:'error',cache:'no-store',signal:expect.any(AbortSignal)}])
   const calls=f.mock.calls.length
   await expect(api.install({} as any)).rejects.toThrow('disabled');await expect(api.testDatabase({} as any)).rejects.toThrow('disabled');await expect(api.testRedis({} as any)).rejects.toThrow('disabled');expect(f).toHaveBeenCalledTimes(calls)
 })

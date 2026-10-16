@@ -62,17 +62,39 @@ export interface InstallResponse {
 /**
  * Get setup status
  */
-export async function getSetupStatus(): Promise<SetupStatus> {
-  const response = await fetch(buildPanelRootUrl('/setup/status'), {
-    credentials: 'omit', redirect: 'error', cache: 'no-store',
+export async function getSetupStatus(signal?: AbortSignal): Promise<SetupStatus> {
+  signal?.throwIfAborted()
+  const controller = new AbortController()
+  const cancel = () => controller.abort(signal?.reason)
+  let onAbort!: () => void
+  const aborted = new Promise<never>((_resolve, reject) => {
+    onAbort = () => reject(controller.signal.reason)
+    controller.signal.addEventListener('abort', onAbort, { once: true })
   })
-  if (!response.ok || response.headers.get('Content-Type')?.split(';')[0].trim() !== 'application/json') {
-    throw new Error('Setup status is unavailable')
+  signal?.addEventListener('abort', cancel, { once: true })
+  // One deadline includes connection, headers and body consumption. Racing the
+  // whole operation also bounds body readers that do not settle after abort.
+  const deadline = setTimeout(() => {
+    controller.abort(new DOMException('Setup status timed out', 'TimeoutError'))
+  }, 30000)
+  try {
+    return await Promise.race([aborted, (async () => {
+      const response = await fetch(buildPanelRootUrl('/setup/status'), {
+        credentials: 'omit', redirect: 'error', cache: 'no-store', signal: controller.signal,
+      })
+      if (!response.ok || response.headers.get('Content-Type')?.split(';')[0].trim() !== 'application/json') {
+        throw new Error('Setup status is unavailable')
+      }
+      const result = await response.json()
+      if (result?.code !== 0 || typeof result?.data?.needs_setup !== 'boolean' ||
+          !['welcome', 'completed'].includes(result?.data?.step)) throw new Error('Invalid setup status')
+      return result.data
+    })()])
+  } finally {
+    clearTimeout(deadline)
+    signal?.removeEventListener('abort', cancel)
+    controller.signal.removeEventListener('abort', onAbort)
   }
-  const result = await response.json()
-  if (result?.code !== 0 || typeof result?.data?.needs_setup !== 'boolean' ||
-      !['welcome', 'completed'].includes(result?.data?.step)) throw new Error('Invalid setup status')
-  return result.data
 }
 
 /**

@@ -24,18 +24,21 @@ const adminComplianceStore = useAdminComplianceStore()
 const adminSettingsStore = useAdminSettingsStore()
 
 const separated = isSeparatedDeployment()
+const setupLifetime = new AbortController()
 const setupState = ref<'loading' | 'required' | 'error' | 'ready'>(separated ? 'loading' : 'ready')
 async function checkSeparatedStatus() {
   setupState.value = 'loading'
   try {
     getDeploymentContract()
-    const status = await getSetupStatus()
+    const status = await getSetupStatus(setupLifetime.signal)
     if (status.needs_setup) { setupState.value = 'required'; return }
     if (route.path === '/setup') await router.replace('/login')
     setupState.value = 'ready'
     await appStore.fetchPublicSettings()
     updateDocumentTitle()
-  } catch { setupState.value = 'error' }
+  } catch {
+    if (!setupLifetime.signal.aborted) setupState.value = 'error'
+  }
 }
 
 function updateDocumentTitle() {
@@ -152,6 +155,7 @@ router.afterEach(() => {
 })
 
 onBeforeUnmount(() => {
+  setupLifetime.abort()
   document.removeEventListener('visibilitychange', onVisibilityChange)
   window.removeEventListener('admin-compliance-required', onAdminComplianceRequired)
 })
@@ -166,12 +170,13 @@ onMounted(async () => {
 
   // Check if setup is needed
   try {
-    const status = await getSetupStatus()
+    const status = await getSetupStatus(setupLifetime.signal)
     if (status.needs_setup && route.path !== '/setup') {
       router.replace('/setup')
       return
     }
   } catch {
+    if (setupLifetime.signal.aborted) return
     // If setup endpoint fails, assume normal mode and continue
   }
 
