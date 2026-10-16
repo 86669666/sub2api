@@ -33,7 +33,7 @@ func openAPIClone[T any](t *testing.T, value T) T {
 		t.Fatal(err)
 	}
 	var copy T
-	if err = json.Unmarshal(data, &copy); err != nil {
+	if err = openAPIDecode(data, &copy); err != nil {
 		t.Fatal(err)
 	}
 	return copy
@@ -229,7 +229,7 @@ func TestOpenAPIResponseNegativeCases(t *testing.T) {
 		{"wrong type", "/health", "get", "application/json", `{"status":true}`, "expected string", 200},
 		{"required missing", "/health", "get", "application/json", `{}`, "missing required", 200},
 		{"extra field", "/health", "get", "application/json", `{"status":"ok","secret":"fixture"}`, "unexpected property", 200},
-		{"bad JSON", "/health", "get", "application/json", `{`, "unexpected end", 200},
+		{"bad JSON", "/health", "get", "application/json", `{`, "unexpected", 200},
 		{"bootstrap leaks into normal status", "/setup/status", "get", "application/json", `{"code":0,"data":{"needs_setup":true,"step":"welcome"}}`, "constant mismatch", 200},
 		{"telemetry grows a body", "/api/event_logging/batch", "post", "", `unexpected`, "expected empty response", 200},
 		{"telemetry media drift", "/api/event_logging/batch", "post", "text/plain", ``, "expected empty response", 200},

@@ -3,12 +3,13 @@ package routes_test
 import (
 	"encoding/json"
 	"fmt"
-	"math"
+	"math/big"
 	"mime"
 	"net/http/httptest"
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -276,6 +277,60 @@ func openAPICheckSchema(schema map[string]any) error {
 	}
 	return nil
 }
+
+// Exact rational arithmetic within a deliberately bounded decimal profile.
+// Reject unsupported sizes BEFORE constructing powers of ten. These limits
+// apply equally to schema constants and responses; no float conversion occurs.
+func openAPIExactNumber(value any) (*big.Rat, error) {
+	n, ok := value.(json.Number)
+	if !ok {
+		return nil, fmt.Errorf("expected integer encoded as an exact JSON number")
+	}
+	text := n.String()
+	if len(text) > 1024 || !json.Valid([]byte(text)) {
+		return nil, fmt.Errorf("unsupported A0 number encoding or length")
+	}
+	if at := strings.IndexAny(text, "eE"); at >= 0 {
+		exponent, err := strconv.ParseInt(text[at+1:], 10, 32)
+		if err != nil || exponent < -4096 || exponent > 4096 {
+			return nil, fmt.Errorf("unsupported A0 number exponent")
+		}
+	}
+	exact, ok := new(big.Rat).SetString(text)
+	if !ok {
+		return nil, fmt.Errorf("unsupported A0 number encoding")
+	}
+	return exact, nil
+}
+
+// Object constants may contain numeric children. Compare those recursively by
+// mathematical value too, so equivalent decimal/exponent encodings agree.
+func openAPIEqualValue(a, b any) bool {
+	switch a := a.(type) {
+	case json.Number:
+		x, err := openAPIExactNumber(a)
+		if err != nil {
+			return false
+		}
+		y, err := openAPIExactNumber(b)
+		return err == nil && x.Cmp(y) == 0
+	case map[string]any:
+		other, ok := b.(map[string]any)
+		if !ok || len(a) != len(other) {
+			return false
+		}
+		for k, v := range a {
+			w, exists := other[k]
+			if !exists || !openAPIEqualValue(v, w) {
+				return false
+			}
+		}
+		return true
+	default:
+		return reflect.DeepEqual(a, b)
+	}
+}
+
 func openAPIValidateValue(schema map[string]any, value any) error {
 	switch schema["type"] {
 	case "object":
@@ -308,14 +363,17 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 			return fmt.Errorf("expected boolean")
 		}
 	case "integer":
-		n, ok := value.(float64)
-		if !ok || math.Trunc(n) != n {
+		n, err := openAPIExactNumber(value)
+		if err != nil {
+			return err
+		}
+		if !n.IsInt() {
 			return fmt.Errorf("expected integer")
 		}
 	default:
 		return fmt.Errorf("unvalidated schema type")
 	}
-	if constant, ok := schema["const"]; ok && !reflect.DeepEqual(constant, value) {
+	if constant, ok := schema["const"]; ok && !openAPIEqualValue(constant, value) {
 		return fmt.Errorf("constant mismatch: expected %v got %v", constant, value)
 	}
 	return nil
@@ -343,7 +401,7 @@ func openAPIValidateResponse(op openAPIOperation, rec *httptest.ResponseRecorder
 		return err
 	}
 	var value any
-	if err := json.Unmarshal(rec.Body.Bytes(), &value); err != nil {
+	if err := openAPIDecode(rec.Body.Bytes(), &value); err != nil {
 		return err
 	}
 	return openAPIValidateValue(body.Schema, value)

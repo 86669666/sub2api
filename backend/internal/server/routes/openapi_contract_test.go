@@ -84,27 +84,33 @@ func openAPIRouter(t *testing.T, bootstrap bool, executeCommon bool) (*gin.Engin
 			return
 		}
 		entry := openAPIRoute{Method: c.Request.Method, Path: c.FullPath(), Authentication: "handler-policy-unreviewed"}
+		authChain := []string{}
 		for _, name := range c.HandlerNames() {
 			switch name {
 			case openAPISymbol(openAPIJWT):
-				entry.Authentication = "jwt"
+				authChain = append(authChain, "jwt")
 			case openAPISymbol(openAPIOptionalJWT):
-				entry.Authentication = "optional-jwt"
+				authChain = append(authChain, "optional-jwt")
 			case openAPISymbol(openAPIAdmin):
-				entry.Authentication = "admin-jwt-or-key"
+				authChain = append(authChain, "admin-jwt-or-key")
 			case openAPISymbol(openAPIKey):
-				entry.Authentication = "gateway-key"
+				authChain = append(authChain, "gateway-key")
 			case openAPISymbol(openAPIStepUp):
 				entry.StepUp = true
 			}
 			// Google auth and setup guards are constructed inside production registrars,
 			// so they are identified from the actual chain rather than injected seams.
 			if strings.Contains(name, "/middleware.APIKeyAuthWithSubscriptionGoogle.") {
-				entry.Authentication = "google-gateway-key"
+				authChain = append(authChain, "google-gateway-key")
 			}
 			if strings.Contains(name, "/setup.RegisterRoutes.setupGuard.") || strings.Contains(name, "/setup.setupGuard.") {
-				entry.Authentication = "setup-state-guard"
+				authChain = append(authChain, "setup-state-guard")
 			}
+		}
+		// Preserve every recognized base-auth seam in registration order, including
+		// duplicates. A later seam must never erase a preceding requirement.
+		if len(authChain) > 0 {
+			entry.Authentication = strings.Join(authChain, " -> ")
 		}
 		if !bootstrap && openAPICommon[key] && entry.Authentication == "handler-policy-unreviewed" {
 			entry.Authentication = "public"
@@ -174,14 +180,23 @@ func openAPIRead(t *testing.T, name string, v any) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	if err = decoder.Decode(v); err != nil {
+	if err := openAPIDecode(data, v); err != nil {
 		t.Fatal(err)
 	}
-	if err = decoder.Decode(new(any)); err != io.EOF {
-		t.Fatal("trailing JSON content", err)
+}
+
+// Both schema constants and response values must retain exact JSON numbers.
+func openAPIDecode(data []byte, v any) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(v); err != nil {
+		return err
 	}
+	if err := decoder.Decode(new(any)); err != io.EOF {
+		return fmt.Errorf("trailing JSON content: %v", err)
+	}
+	return nil
 }
 func openAPICompare(actual []openAPIRoute, accepted []openAPICoverage) error {
 	remaining := map[string]openAPICoverage{}
