@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { visualResponse, trendFixture } from './visual-data.mjs'
 import { Readable } from 'node:stream'
 import { createFixtureState, createFixtureServer } from './mock-upstream.mjs'
-import { assertTableSnapshot, assertStableScroll, assertChartSnapshot, assertThemeTransition, pageCases, viewports } from './visual-contract.mjs'
+import { assertTableSnapshot, assertStableScroll, assertChartSnapshot, assertThemeTransition, cacheRasterEvidence, assertTrendRegion, pageCases, viewports } from './visual-contract.mjs'
 const req=(url,headers={},method='GET',body='')=>({url,headers,method,body,rawHeaders:[]})
 test('visual mode is opt-in and cannot change default D0 responses',()=>{
  const state=createFixtureState('test');assert.equal(state.select(req('/v1/usage')).visual,'off')
@@ -53,7 +53,20 @@ test('table verifier rejects blank windows, overlap, stale identity, lost rows a
  assert.throws(()=>assertTableSnapshot(table(),{virtual:false}));assert.throws(()=>assertTableSnapshot(table(),{virtual:true,atEnd:true}))
  assertStableScroll([100,101,100]);assert.throws(()=>assertStableScroll([100,104,108]))
 })
-const chart=()=>({id:1,sameCanvas:true,width:300,height:200,ink:500,pixelHash:123,chartArea:{top:30,bottom:190,left:30,right:290},datasets:[{data:[20],points:[{x:50,y:50,ink:9}]},{data:[5]},{data:[10],dash:[2,3],point:'triangle'},{data:[90],dash:[8,3],point:'rectRot'},{data:[75]}],legend:[{text:'Cache Creation',point:'triangle',box:{width:30,height:10}},{text:'Cache Read',point:'rectRot',box:{width:30,height:10}}],colors:Object.fromEntries(['line','fill','point','muted','faint','hitRate','legend','xGrid','yGrid','xText','yText','percentText'].map(k=>[k,'light']))})
+// Synthetic RGBA inputs exercise the verifier only; browser evidence must come
+// from the same-canvas draw-ablation probe, never from these generated samples.
+const names=['Input','Output','Cache Creation','Cache Read','Cache Hit Rate']
+const trace=indices=>[...indices].reverse().map(index=>({index,label:names[index]}))
+const rgba=(pixels,color=[100,100,100,255])=>{
+ const bytes=Array(13*13*4).fill(0)
+ // Fixed grid/fill contamination appears in every frame and must cancel.
+ for(const n of [0,1,2,3])bytes.splice(n*4,4,50,50,50,255)
+ for(const n of pixels)bytes.splice(n*4,4,...color)
+ return bytes
+}
+const shapes=[[57,69,70,71,81,85],[58,68,72,80,86,94]]
+const raster=()=>({method:'same-canvas-controller-draw-ablation-v1',backdrop:[250,250,250],restored:true,fullDraws:trace([0,1,2,3,4]),baselineDraws:[],targets:[2,3].map((index,k)=>({index,label:names[index],isolatedDraws:trace([index]),withoutDraws:trace([0,1,2,3,4].filter(i=>i!==index)),patches:[{pointIndex:0,x:60+k*10,y:60+k*10,width:13,height:13,baseline:rgba([]),isolated:rgba(shapes[k]),full:rgba(shapes.flat()),without:rgba(shapes[1-k])}]}))})
+const chart=()=>({id:1,sameCanvas:true,width:300,height:200,ink:500,pixelHash:123,chartArea:{top:30,bottom:190,left:30,right:290},datasets:[{data:[20],points:[{x:50,y:50,ink:9}]},{data:[5]},{label:'Cache Creation',data:[10],dash:[2,3],point:'triangle',points:[{x:60,y:60,ink:6}]},{label:'Cache Read',data:[90],dash:[8,3],point:'rectRot',points:[{x:70,y:70,ink:6}]},{data:[75]}],legend:[{text:'Cache Creation',point:'triangle',box:{width:30,height:10}},{text:'Cache Read',point:'rectRot',box:{width:30,height:10}}],cacheRaster:raster(),colors:Object.fromEntries(['line','fill','point','muted','faint','hitRate','legend','xGrid','yGrid','xText','yText','percentText'].map(k=>[k,'light']))})
 test('chart verifier rejects unpainted canvases, identical markers, stale colors and remounts',()=>{
  assertChartSnapshot(chart())
  for(const corrupt of [s=>s.ink=0,s=>s.datasets[2].dash=[8,3],s=>s.legend[0].point='rectRot',s=>s.datasets[4].data=[100]]){const s=chart();corrupt(s);assert.throws(()=>assertChartSnapshot(s))}
@@ -82,4 +95,66 @@ test('real handler isolates visual auth/no-store responses and restores original
  const original=await invoke(server,'/v1/usage',{headers:{authorization:'Bearer API-KEY-SENTINEL'}})
  assert.equal(original.status,403);assert.equal(original.headers['cache-control'],'public, max-age=3600');assert.equal(original.body.fixture.keyTag,'A')
  assert.equal(server.listening,false)
+})
+
+test('023 P2-01: zero/missing cache pixels cannot borrow Input, grid, or theme pixel changes',()=>{
+ const old=chart();delete old.cacheRaster
+ old.datasets[2].points[0].ink=0;old.datasets[3].points[0].ink=0
+ assert.throws(()=>assertChartSnapshot(old))
+ const after=structuredClone(old);after.pixelHash=456;after.colors=Object.fromEntries(Object.keys(after.colors).map(k=>[k,'dark']))
+ assert.throws(()=>assertThemeTransition(old,after))
+ for(const corrupt of [
+  s=>delete s.cacheRaster,
+  s=>delete s.datasets[2].points,
+  s=>s.datasets[2].points[0].ink=0,
+  s=>s.datasets[3].points[0].ink=0,
+  s=>s.cacheRaster.targets[0].patches=[],
+  s=>delete s.cacheRaster.targets[0].patches[0].isolated,
+  s=>s.cacheRaster.targets[0].patches[0].isolated=rgba([]),
+  s=>s.cacheRaster.targets[0].patches[0].isolated=rgba(shapes[0],[100,100,100,0]),
+  s=>s.cacheRaster.targets[0].patches[0].isolated=rgba(shapes[0],[250,250,250,255]),
+  s=>s.cacheRaster.targets[0].patches[0].isolated=rgba(shapes[0],[245,245,245,255]),
+  s=>s.cacheRaster.targets[0].patches[0].without=[...s.cacheRaster.targets[0].patches[0].full],
+  s=>s.cacheRaster.targets[0].isolatedDraws=trace([0]),
+  s=>s.cacheRaster.targets[0].index=3,
+  s=>s.cacheRaster.targets[0].patches[0].x=999,
+  s=>s.cacheRaster.restored=false,
+ ]){const s=chart();corrupt(s);assert.throws(()=>assertChartSnapshot(s))}
+ for(const index of [0,1]){
+  const s=chart(),p=s.cacheRaster.targets[index].patches[0]
+  p.isolated=[...p.baseline];p.full=[...p.without]
+  assert.throws(()=>assertChartSnapshot(s),/contrasting/)
+ }
+})
+test('cache raster evidence requires contrasting, attributable, distinct marks in actual composite',()=>{
+ const good=raster();const result=cacheRasterEvidence(good)
+ assert.deepEqual(result.targets.map(t=>t.visiblePixels),[6,6]);assert.deepEqual(result.exclusive,[6,6])
+ const identical=raster()
+ for(const t of identical.targets){t.patches[0].isolated=rgba(shapes[0]);t.patches[0].full=rgba(shapes[0]);t.patches[0].without=rgba([])}
+ assert.throws(()=>cacheRasterEvidence(identical),/distinguishable/)
+ const erasure=raster();const p=erasure.targets[0].patches[0]
+ p.baseline=rgba(shapes[0],[20,20,20,255]);p.isolated=rgba(shapes[0],[250,250,250,255]);p.full=[...p.isolated];p.without=[...p.baseline]
+ assert.throws(()=>cacheRasterEvidence(erasure),/contrasting/,'erasing grid with backdrop color is not a visible cache curve')
+})
+const trendState=mode=>({response:{path:'/api/v1/usage/dashboard/trend',method:'GET',status:200,body:visualResponse(req('/api/v1/usage/dashboard/trend',{authorization:'Bearer VISUAL-user-TOKEN'}),mode).body},regionCount:1,heading:'Token Usage Trend',visible:true,loading:false,emptyText:mode==='empty'?'No data available':null,canvasCount:mode==='empty'?0:1,canvasInk:mode==='empty'?0:500,previousCanvasConnected:false})
+test('023 P2-02: normal model-card empty text cannot satisfy trend empty state',()=>{
+ const headers={authorization:'Bearer VISUAL-user-TOKEN'}
+ for(const mode of ['normal','empty'])assert.deepEqual(visualResponse(req('/api/v1/usage/dashboard/models',headers),mode).body.data.models,[])
+ const normal=trendState('normal');assertTrendRegion(normal,'normal')
+ assert.equal(normal.response.body.data.trend.length,3)
+ normal.mainText='No data available';assert.throws(()=>assertTrendRegion(normal,'empty'))
+ const empty=trendState('empty');assertTrendRegion(empty,'empty')
+ for(const corrupt of [
+  s=>s.response=trendState('normal').response,
+  s=>delete s.response.body.data.trend,
+  s=>s.response.path='/api/v1/usage/dashboard/models',
+  s=>s.response.status=500,
+  s=>s.regionCount=2,
+  s=>s.heading='Model Distribution',
+  s=>s.emptyText=null,
+  s=>s.canvasCount=1,
+  s=>s.previousCanvasConnected=true,
+  s=>s.loading=true,
+ ]){const s=trendState('empty');corrupt(s);assert.throws(()=>assertTrendRegion(s,'empty'))}
+ const missingCurve=trendState('normal');missingCurve.canvasInk=0;assert.throws(()=>assertTrendRegion(missingCurve,'normal'))
 })

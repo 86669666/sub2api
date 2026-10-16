@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
-import { assertChartSnapshot, assertThemeTransition, assertTableSnapshot, assertStableScroll, viewports, pageCases } from './visual-contract.mjs'
+import { assertChartSnapshot, assertThemeTransition, assertTrendRegion, assertTableSnapshot, assertStableScroll, viewports, pageCases } from './visual-contract.mjs'
 
 // Called only inside the existing ephemeral D0 browser boundary. No browser is
 // launched here, no routing interception, and no additional destination is allowed.
@@ -43,10 +43,49 @@ export async function runVisualAcceptance(browser,{panel,gateway,control,observe
    legend:c.legend.legendItems.map((item,i)=>({text:item.text,point:item.pointStyle,box:c.legend.legendHitBoxes[i]})),
    colors:{line:ds[0].borderColor,fill:ds[0].backgroundColor,point:ds[0].pointBackgroundColor,muted:ds[1].borderColor,faint:ds[2].borderColor,hitRate:ds[4].borderColor,legend:c.options.plugins.legend.labels.color,xGrid:sc.x.grid.color,yGrid:sc.y.grid.color,xText:sc.x.ticks.color,yText:sc.y.ticks.color,percentText:sc.yPercent.ticks.color}}
  })
+ // Test-side ablation of real Chart controller draws. Never change dataset
+ // styles/data/scales or fabricate pixels. Grid and Filler hooks run identically
+ // in every frame; their constant pixels cancel in the baseline comparison.
+ const cacheRaster=page=>page.evaluate(()=>{
+  const c=window.visual.chart(),canvas=c.canvas,ctx=canvas.getContext('2d')
+  const read=()=>ctx.getImageData(0,0,canvas.width,canvas.height).data
+  const original=read(),controllers=c.data.datasets.map((_,i)=>c.getDatasetMeta(i).controller)
+  const saved=controllers.map(controller=>({controller,own:Object.getOwnPropertyDescriptor(controller,'draw'),draw:controller.draw}))
+  let allowed=new Set([0,1,2,3,4]),draws=[]
+  const targets=[2,3].map(index=>({index,label:c.data.datasets[index].label,points:c.getDatasetMeta(index).data.map(p=>({x:p.x,y:p.y}))}))
+  let backdrop=[255,255,255]
+  const ancestors=[];for(let el=canvas;el;el=el.parentElement)ancestors.unshift(el)
+  for(const el of ancestors){
+   const style=getComputedStyle(el)
+   if(style.backgroundImage!=='none')throw new Error('unsupported canvas backdrop image')
+   const rgba=style.backgroundColor.match(/[\d.]+/g)?.map(Number)
+   if(!rgba||rgba.length<3)throw new Error('unresolved canvas CSS backdrop')
+   const alpha=rgba[3]??1;backdrop=backdrop.map((b,k)=>rgba[k]*alpha+b*(1-alpha))
+  }
+  const frame=indices=>{
+   allowed=new Set(indices);draws=[];c.draw()
+   const samples=targets.map(t=>t.points.map(p=>Array.from(ctx.getImageData(Math.round(p.x*c.currentDevicePixelRatio)-6,Math.round(p.y*c.currentDevicePixelRatio)-6,13,13).data)))
+   return {samples,draws:[...draws]}
+  }
+  let result
+  try{
+   saved.forEach(({controller,draw},index)=>{controller.draw=function(...args){if(allowed.has(index)){draws.push({index,label:c.data.datasets[index].label});return draw.apply(this,args)}}})
+   const full=frame([0,1,2,3,4]),baseline=frame([])
+   result={method:'same-canvas-controller-draw-ablation-v1',backdrop,fullDraws:full.draws,baselineDraws:baseline.draws,targets:targets.map((t,k)=>{
+    const isolated=frame([t.index]),without=frame([0,1,2,3,4].filter(i=>i!==t.index))
+    return {index:t.index,label:t.label,isolatedDraws:isolated.draws,withoutDraws:without.draws,patches:t.points.map((p,j)=>({...p,pointIndex:j,width:13,height:13,baseline:baseline.samples[k][j],isolated:isolated.samples[k][j],full:full.samples[k][j],without:without.samples[k][j]}))}
+   })}
+  } finally {
+   for(const {controller,own} of saved){if(own)Object.defineProperty(controller,'draw',own);else delete controller.draw}
+   c.draw()
+  }
+  result.restored=read().every((value,i)=>value===original[i])&&saved.every(({controller,draw})=>controller.draw===draw)
+  return result
+ })
  const painted=async(page)=>{
   await page.waitForFunction(()=>window.visual?.chart()?.getDatasetMeta(0).data.length>0)
   let previous='',stable=0,last
-  for(let i=0;i<35;i++){await page.waitForTimeout(100);last=await canvasSnapshot(page);const key=JSON.stringify(last);stable=key===previous?stable+1:0;previous=key;if(stable>=3)return last}
+  for(let i=0;i<35;i++){await page.waitForTimeout(100);last=await canvasSnapshot(page);const key=JSON.stringify(last);stable=key===previous?stable+1:0;previous=key;if(stable>=3){last.cacheRaster=await cacheRaster(page);return last}}
   throw new Error('Chart drawing did not settle')
  }
  const tableSnapshot=page=>page.evaluate(()=>{
@@ -220,9 +259,28 @@ export async function runVisualAcceptance(browser,{panel,gateway,control,observe
     await page.locator('button[type=submit]').click();await page.getByText('Fixture login rejected',{exact:false}).first().waitFor()
     await shot(page,'app-login-error');evidence.pages.push({name:'login',state:mode,actualApp:true})
    } else {
-    await login(page,'user',null);await page.goto(panel+'/dashboard');await page.locator('main .card').first().waitFor();await settle(page)
-    assert.match(await page.locator('main').innerText(),/no data|no usage/i)
-    await shot(page,'app-user-dashboard-empty');evidence.pages.push({name:'user-dashboard',state:mode,actualApp:true})
+    const trendResponse=()=>page.waitForResponse(r=>new URL(r.url()).origin===panel&&new URL(r.url()).pathname==='/api/v1/usage/dashboard/trend'&&r.request().method()==='GET')
+    const responseValue=async pending=>{const r=await pending;return {path:new URL(r.url()).pathname,method:r.request().method(),status:r.status(),body:await r.json()}}
+    const region=page.locator('main .card').filter({has:page.getByRole('heading',{name:'Token Usage Trend',exact:true})})
+    const regionValue=async response=>({response,regionCount:await region.count(),...await region.evaluate(el=>{
+     const canvas=el.querySelector('canvas'),bytes=canvas?.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data
+     return {heading:el.querySelector('h3')?.textContent.trim(),visible:el.getBoundingClientRect().height>0,loading:!!el.querySelector('.animate-spin'),emptyText:[...el.querySelectorAll('div')].find(e=>e.children.length===0&&e.textContent.trim()==='No data available')?.textContent.trim()??null,canvasCount:el.querySelectorAll('canvas').length,canvasInk:bytes?Array.from(bytes).filter((v,i)=>i%4===3&&v>0).length:0,previousCanvasConnected:window.__normalTrendCanvas?.isConnected??false}
+    })})
+    // A positive control in this same page must render before the empty refresh.
+    // Models intentionally remain empty in both modes: their text cannot help.
+    await control({visual:'normal'});await login(page,'user',null)
+    const normalPending=trendResponse();await page.goto(panel+'/dashboard')
+    const normalResponse=await responseValue(normalPending)
+    await region.locator('canvas').waitFor();await settle(page)
+    const normal=await regionValue(normalResponse);assertTrendRegion(normal,'normal')
+    await region.locator('canvas').evaluate(el=>{window.__normalTrendCanvas=el})
+    await shot(page,'app-user-dashboard-normal-control')
+    await control({visual:'empty'})
+    const emptyPending=trendResponse();await page.getByRole('button',{name:'Refresh',exact:true}).click()
+    const emptyResponse=await responseValue(emptyPending)
+    await region.getByText('No data available',{exact:true}).waitFor();await region.locator('canvas').waitFor({state:'detached'});await settle(page)
+    const empty=await regionValue(emptyResponse);assertTrendRegion(empty,'empty')
+    await shot(page,'app-user-dashboard-empty');evidence.pages.push({name:'user-dashboard',state:mode,actualApp:true,normal,empty})
    }
    await page.context().close()
   }
