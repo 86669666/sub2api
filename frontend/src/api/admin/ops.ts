@@ -1,10 +1,11 @@
+import { buildAdminWSUrl } from '../url'
 /**
  * Admin Ops API endpoints (vNext)
  * - Error logs list/detail
  * - Dashboard overview (raw path)
  */
 
-import { apiClient, buildGatewayUrl } from '../client'
+import { apiClient } from '../client'
 import type { PaginatedResponse } from '@/types'
 
 export type OpsQueryMode = 'auto' | 'raw' | 'preagg'
@@ -603,9 +604,18 @@ export function subscribeQPS(onMessage: (data: any) => void, options: SubscribeQ
     isConnecting = true
     setStatus(hasConnectedOnce ? 'reconnecting' : 'connecting')
     const wsBaseUrl = options.wsBaseUrl || import.meta.env.VITE_WS_BASE_URL
-    const wsURL = wsBaseUrl
-      ? new URL(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${wsBaseUrl}/api/v1/admin/ops/ws/qps`)
-      : new URL(buildGatewayUrl('/api/v1/admin/ops/ws/qps').replace(/^http/, 'ws'))
+    let wsURL: URL
+    try {
+      wsURL = buildAdminWSUrl(wsBaseUrl)
+    } catch {
+      isConnecting = false
+      shouldReconnect = false
+      clearReconnectTimer()
+      clearStaleTimer()
+      setStatus('closed')
+      options.onError?.(new Event('error'))
+      return
+    }
 
     // Do NOT put admin JWT in the URL query string (it can leak via access logs, proxies, etc).
     // Browsers cannot set Authorization headers for WebSockets, so we pass the token via

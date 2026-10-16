@@ -11,6 +11,7 @@ import { useAdminComplianceStore } from '@/stores/adminCompliance'
 import { useNavigationLoadingState } from '@/composables/useNavigationLoading'
 import { useRoutePrefetch } from '@/composables/useRoutePrefetch'
 import { getSetupStatus } from '@/api/setup'
+import { isSeparatedDeployment } from '@/api/url'
 import { resolveCompletedSetupRedirectPath } from './setupRedirect'
 import { resolveRouteDocumentTitle } from './title'
 
@@ -22,7 +23,9 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/setup',
     name: 'Setup',
-    component: () => import('@/views/setup/SetupWizardView.vue'),
+    component: isSeparatedDeployment()
+      ? () => import('@/views/setup/SetupUnavailableView.vue')
+      : () => import('@/views/setup/SetupWizardView.vue'),
     meta: {
       requiresAuth: false,
       title: 'Setup'
@@ -803,6 +806,11 @@ router.beforeEach(async (to, _from, next) => {
   // Check if route requires authentication
   const requiresAuth = to.meta.requiresAuth !== false // Default to true
   const requiresAdmin = to.meta.requiresAdmin === true
+
+  if (to.path === '/setup' && isSeparatedDeployment()) {
+    next('/login')
+    return
+  }
 
   if (to.path === '/setup') {
     try {

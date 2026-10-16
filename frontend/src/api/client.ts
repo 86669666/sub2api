@@ -14,7 +14,7 @@ import {
 } from './adminUIRequest'
 import { refreshAuthTokens } from './tokenRefresh'
 import { getAPIBaseURL } from './url'
-export { buildApiUrl, buildGatewayUrl } from './url'
+export { buildApiUrl, buildGatewayUrl, buildPanelRootUrl } from './url'
 
 // ==================== Axios Instance Configuration ====================
 

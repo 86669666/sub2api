@@ -3,6 +3,20 @@ import vue from '@vitejs/plugin-vue'
 import checker from 'vite-plugin-checker'
 import { resolve } from 'path'
 
+// Emit the production URL module itself as a stable, named entry. Rollup uses
+// this same module for App.vue and gateway callers; no duplicate metadata or
+// separately compiled test implementation can satisfy the contract gate.
+function deploymentContractEntry(): Plugin {
+  return {
+    name: 'deployment-contract-entry',
+    apply: 'build',
+    buildStart() {
+      this.emitFile({ type: 'chunk', id: resolve(__dirname, 'src/api/url.ts'),
+        name: 'deployment-contract', preserveSignature: 'strict' })
+    },
+  }
+}
+
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => ({
     '&': '&amp;',
@@ -85,6 +99,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
+      ...(env.VITE_DEPLOYMENT_MODE === 'separated' ? [deploymentContractEntry()] : []),
       vue(),
       checker({
         vueTsc: true

@@ -1,0 +1,4 @@
+ARG NODE_IMAGE=node:24-alpine
+FROM ${NODE_IMAGE}
+COPY deploy/separated/tests/mock-upstream.mjs /app/mock.mjs
+CMD ["node", "/app/mock.mjs"]

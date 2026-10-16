@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterView, useRouter, useRoute } from 'vue-router'
-import { computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import Toast from '@/components/common/Toast.vue'
 import NavigationProgress from '@/components/common/NavigationProgress.vue'
 import AdminComplianceDialog from '@/components/admin/AdminComplianceDialog.vue'
@@ -8,6 +8,8 @@ import { resolveRouteDocumentTitle } from '@/router/title'
 import AnnouncementPopup from '@/components/common/AnnouncementPopup.vue'
 import { useAppStore, useAuthStore, useSubscriptionStore, useAnnouncementStore, useAdminComplianceStore, useAdminSettingsStore } from '@/stores'
 import { getSetupStatus } from '@/api/setup'
+import { isSeparatedDeployment, getDeploymentContract } from '@/api/url'
+import SetupUnavailableView from '@/views/setup/SetupUnavailableView.vue'
 import { updateFavicon } from '@/utils/branding'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { resolveSiteBillingMode } from '@/utils/siteBillingMode'
@@ -20,6 +22,25 @@ const subscriptionStore = useSubscriptionStore()
 const announcementStore = useAnnouncementStore()
 const adminComplianceStore = useAdminComplianceStore()
 const adminSettingsStore = useAdminSettingsStore()
+
+const separated = isSeparatedDeployment()
+const setupLifetime = new AbortController()
+const deploymentContract = ref<ReturnType<typeof getDeploymentContract>>(null)
+const setupState = ref<'loading' | 'required' | 'error' | 'ready'>(separated ? 'loading' : 'ready')
+async function checkSeparatedStatus() {
+  setupState.value = 'loading'
+  try {
+    deploymentContract.value = getDeploymentContract()
+    const status = await getSetupStatus(setupLifetime.signal)
+    if (status.needs_setup) { setupState.value = 'required'; return }
+    if (route.path === '/setup') await router.replace('/login')
+    setupState.value = 'ready'
+    await appStore.fetchPublicSettings()
+    updateDocumentTitle()
+  } catch {
+    if (!setupLifetime.signal.aborted) setupState.value = 'error'
+  }
+}
 
 function updateDocumentTitle() {
   const customMenuItems = [
@@ -135,6 +156,7 @@ router.afterEach(() => {
 })
 
 onBeforeUnmount(() => {
+  setupLifetime.abort()
   document.removeEventListener('visibilitychange', onVisibilityChange)
   window.removeEventListener('admin-compliance-required', onAdminComplianceRequired)
 })
@@ -142,14 +164,20 @@ onBeforeUnmount(() => {
 onMounted(async () => {
   window.addEventListener('admin-compliance-required', onAdminComplianceRequired)
 
+  if (separated) {
+    await checkSeparatedStatus()
+    return
+  }
+
   // Check if setup is needed
   try {
-    const status = await getSetupStatus()
+    const status = await getSetupStatus(setupLifetime.signal)
     if (status.needs_setup && route.path !== '/setup') {
       router.replace('/setup')
       return
     }
   } catch {
+    if (setupLifetime.signal.aborted) return
     // If setup endpoint fails, assume normal mode and continue
   }
 
@@ -162,8 +190,10 @@ onMounted(async () => {
 </script>
 
 <template>
+  <span v-if="deploymentContract" hidden data-testid="app-deployment-contract" :data-contract="JSON.stringify(deploymentContract)" />
   <NavigationProgress />
-  <RouterView />
+  <SetupUnavailableView v-if="separated && setupState !== 'ready'" :state="setupState" @retry="checkSeparatedStatus" />
+  <RouterView v-else />
   <Toast />
   <AnnouncementPopup />
   <AdminComplianceDialog />
