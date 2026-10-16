@@ -23,8 +23,12 @@ COPY frontend/ ./
 COPY docs/legal/ /app/docs/legal/
 
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-# vite.config.ts defaults outDir to ../backend/internal/web/dist; override it.
-RUN pnpm run build -- --outDir /out/dist --emptyOutDir
+# package.json's build script is `check:i18n && vue-tsc -b && vite build`.
+# Extra args passed to `pnpm run build` do not reach vite, and the default
+# outDir is ../backend/internal/web/dist. Invoke vite directly.
+RUN pnpm run check:i18n \
+    && pnpm exec vue-tsc -b \
+    && pnpm exec vite build --outDir /out/dist --emptyOutDir
 
 FROM ${NGINX_IMAGE}
 
@@ -32,5 +36,6 @@ COPY --from=frontend-builder /out/dist /usr/share/nginx/html
 COPY deploy/separated/panel.nginx.conf /etc/nginx/conf.d/default.conf
 COPY deploy/separated/proxy_common.conf /etc/nginx/proxy_common.conf
 COPY deploy/separated/admin-allowlist.conf /etc/nginx/admin-allowlist.conf
+COPY deploy/separated/security_headers.conf /etc/nginx/security_headers.conf
 
 EXPOSE 80
