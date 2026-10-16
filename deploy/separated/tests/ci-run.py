@@ -86,6 +86,7 @@ def check(name,result,status,allow=False):
 
 def edge_probe(name,port,path,ack,headers):
     item={'name':name,'path':path,'ack':ack,'log_since':datetime.datetime.now(datetime.timezone.utc).isoformat()};receipt.setdefault('edge502',[]).append(item)
+    primary_error=None
     def logs():return run(['docker','logs','--since',item['log_since'],run_id+'-'+name],timeout=10).stdout
     try:
         item['identity_before']=inspect_targets()
@@ -110,13 +111,18 @@ def edge_probe(name,port,path,ack,headers):
         verify_edge502(item,run_id,targets)
         check('edge '+name+' 502',item['response'],502,name=='gateway')
     except BaseException as error:
+        primary_error=error
         item['error']=repr(error)
         # Bounded diagnostic collection must not replace the original failure.
         for key,collect in [('failure_rows',rows),('failure_nginx_log',logs)]:
             try:item[key]=collect()
             except Exception as secondary:item[key+'_error']=repr(secondary)
         raise
-    finally:(out/'edge502.json').write_text(json.dumps(receipt['edge502'],indent=2))
+    finally:
+        try:(out/'edge502.json').write_text(json.dumps(receipt['edge502'],indent=2))
+        except Exception as secondary:
+            item['evidence_write_error']=repr(secondary)
+            if primary_error is None:raise
 
 def inspect_targets(stopped_mock=False):
     net=json.loads(run(['docker','network','inspect',run_id],timeout=10).stdout)[0]
