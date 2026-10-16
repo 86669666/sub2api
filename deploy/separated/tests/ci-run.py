@@ -3,6 +3,7 @@
 import argparse, datetime, hashlib, http.client, json, os, pathlib, re, subprocess, time, uuid, signal, socket, sys
 from production_contract import verify as verify_production_contract
 from loopback_relay import identities
+from edge502_contract import verify as verify_edge502, verify_ack as verify_fault_ack
 p=argparse.ArgumentParser();p.add_argument('--execute',action='store_true');p.add_argument('--evidence',type=pathlib.Path,required=True);args=p.parse_args()
 if not args.execute or os.environ.get('GITHUB_ACTIONS')!='true' or os.uname().sysname!='Linux' or os.environ.get('RUNNER_ENVIRONMENT')!='github-hosted':
     p.error('requires --execute in an authorized ephemeral GitHub Actions Linux job; no local runtime fallback')
@@ -25,11 +26,14 @@ def run(cmd,check=True,extra_env=None,timeout=None):
 
 def request(port,path,method='GET',headers=(),body=None):
     c=http.client.HTTPConnection('127.0.0.1',port,timeout=10)
-    c.putrequest(method,path)
-    for k,v in headers:c.putheader(k,v)
-    if body is not None:c.putheader('Content-Length',str(len(body.encode())))
-    c.endheaders(body.encode() if body is not None else None)
-    r=c.getresponse();data=r.read();result={'status':r.status,'headers':r.getheaders(),'body':data.decode(errors='replace')};c.close();return result
+    try:
+        c.putrequest(method,path)
+        for k,v in headers:c.putheader(k,v)
+        if body is not None:c.putheader('Content-Length',str(len(body.encode())))
+        c.endheaders(body.encode() if body is not None else None)
+        r=c.getresponse();data=r.read()
+        return {'status':r.status,'headers':r.getheaders(),'body':data.decode(errors='replace')}
+    finally:c.close()
 
 last_control=None
 def control(**values):
@@ -47,7 +51,8 @@ def control(**values):
         assert ack['sequence']>=last_control['sequence']
         assert ack['status']==values.get('status',last_control['status'])
     elif 'status' in values:assert ack['status']==values['status']
-    for key in ('setup','setupHang','wsRedirect'):
+    assert ack['owner']==run_id
+    for key in ('setup','setupHang','wsRedirect','faultMode'):
         if key in values:assert ack[key]==values[key]
     last_control=ack
     return ack
@@ -79,9 +84,43 @@ def check(name,result,status,allow=False):
     assert not header(result,'Access-Control-Allow-Credentials'),(name,result)
     receipt['checks'].append({'name':name,**result})
 
+def edge_probe(name,port,path,ack,headers):
+    item={'name':name,'path':path,'ack':ack,'log_since':datetime.datetime.now(datetime.timezone.utc).isoformat()};receipt.setdefault('edge502',[]).append(item)
+    def logs():return run(['docker','logs','--since',item['log_since'],run_id+'-'+name],timeout=10).stdout
+    try:
+        item['identity_before']=inspect_targets()
+        item['before']=rows()
+        item['log_since']=datetime.datetime.now(datetime.timezone.utc).isoformat()
+        start=time.monotonic()
+        try:item['response']=request(port,path,headers=headers)
+        finally:item['elapsed_seconds']=time.monotonic()-start
+        deadline=time.monotonic()+2
+        while True:
+            item['after']=rows()
+            if item['after'] and item['after'][-1].get('fault',{}).get('closeCompleted'):break
+            if time.monotonic()>=deadline:raise RuntimeError('missing bounded socket-close receipt')
+            time.sleep(.05)
+        deadline=time.monotonic()+2
+        while True:
+            item['nginx_log_delta']=logs()
+            if f'"GET {path} HTTP/1.1" 502 ' in item['nginx_log_delta']:break
+            if time.monotonic()>=deadline:raise RuntimeError('missing bounded nginx access receipt')
+            time.sleep(.05)
+        item['identity_after']=inspect_targets()
+        verify_edge502(item,run_id,targets)
+        check('edge '+name+' 502',item['response'],502,name=='gateway')
+    except BaseException as error:
+        item['error']=repr(error)
+        # Bounded diagnostic collection must not replace the original failure.
+        for key,collect in [('failure_rows',rows),('failure_nginx_log',logs)]:
+            try:item[key]=collect()
+            except Exception as secondary:item[key+'_error']=repr(secondary)
+        raise
+    finally:(out/'edge502.json').write_text(json.dumps(receipt['edge502'],indent=2))
+
 def inspect_targets(stopped_mock=False):
-    net=json.loads(run(['docker','network','inspect',run_id]).stdout)[0]
-    cs={name:json.loads(run(['docker','inspect',run_id+'-'+name]).stdout)[0] for name in ('panel','gateway','mock')}
+    net=json.loads(run(['docker','network','inspect',run_id],timeout=10).stdout)[0]
+    cs={name:json.loads(run(['docker','inspect',run_id+'-'+name],timeout=10).stdout)[0] for name in ('panel','gateway','mock')}
     return identities(run_id,net,cs,owned_images,previous=targets,stopped_mock=stopped_mock)
 
 def start_relay():
@@ -151,7 +190,7 @@ try:
     node_version=run(['node','--version']).stdout.strip()
     assert re.fullmatch(r'v24\.\d+\.\d+',node_version),'expected explicit CI Node24'
     receipt['node_version']=node_version
-    run(['node','--test','deploy/separated/tests/cache-contract.test.mjs'],timeout=30)
+    run(['node','--test','deploy/separated/tests/cache-contract.test.mjs','deploy/separated/tests/edge502.test.mjs'],timeout=30)
     run([sys.executable,'-B','-m','unittest','discover','-s','deploy/separated/tests','-p','test_*.py','-v'], extra_env={'GITHUB_ACTIONS':'true','RUNNER_ENVIRONMENT':'github-hosted'},timeout=240)
     receipt['candidate']=sha;receipt['runner']={'os':os.uname().sysname,'arch':os.uname().machine,'github_run_id':os.environ.get('GITHUB_RUN_ID')}
     assert run(['docker','context','show']).stdout.strip()=='default','no alternate Docker context permitted'
@@ -178,7 +217,7 @@ try:
     for name,port in [('mock',8090),('panel',8088),('gateway',8089)]:
         cname=run_id+'-'+name;containers.append(cname)
         cmd=['docker','run','-d','--name',cname,'--label','sub2api.d0.owner='+run_id,'--network',run_id]
-        if name=='mock':cmd+=['--network-alias','backend']
+        if name=='mock':cmd+=['--network-alias','backend','-e','D0_OWNER='+run_id]
         container_ids[cname]=run(cmd+[cname]).stdout.strip()
     start_relay()
     receipt['readiness'] = []
@@ -253,10 +292,17 @@ try:
     browser_state=json.loads(run(['docker','inspect',container_ids[browser]]).stdout)[0]['State']
     assert browser_state['Running'] is False and browser_state['ExitCode']==0,'actual browser failed'
     relay_stage('after_browser_before_fault_injection')
-    run(['docker','stop',run_id+'-mock'])
-    relay_stage('deliberate_mock_stop', stopped_mock=True)
-    check('edge gateway 502',request(8089,'/v1/usage',headers=[origin]),502,True)
-    r=request(8088,'/setup/status');assert r['status']==502 and header(r,'Cache-Control')==['no-store']
+    # Browser is a separate control actor; establish a new checked control epoch.
+    last_control=None
+    for name,port,path in [('gateway',8089,'/v1/usage'),('panel',8088,'/setup/status')]:
+        ack=control(status=200,setupHang='',wsRedirect=False,faultMode='close-before-headers',clear=True)
+        verify_fault_ack(ack,run_id)
+        edge_probe(name,port,path,ack,[origin] if name=='gateway' else [])
+        relay_stage('between_or_after_edge_'+name)
+    control(faultMode='none',status=200)
+    check('gateway recovery after close',request(8089,'/v1/usage',headers=[origin]),200,True)
+    r=request(8088,'/setup/status');assert r['status']==200 and header(r,'Cache-Control')==['no-store']
+    relay_stage('after_edge_disarm_recovery')
     receipt['outcome']='passed'
 finally:
     try:stop_relay()
