@@ -1,0 +1,6 @@
+ARG PLAYWRIGHT_IMAGE=mcr.microsoft.com/playwright:v1.56.1-noble
+FROM ${PLAYWRIGHT_IMAGE}
+WORKDIR /work
+RUN npm install --ignore-scripts --no-audit --no-fund --save-exact playwright@1.56.1
+COPY deploy/separated/tests/browser-probes.mjs /work/browser-probes.mjs
+CMD ["node", "/work/browser-probes.mjs"]

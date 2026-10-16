@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterView, useRouter, useRoute } from 'vue-router'
-import { computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import Toast from '@/components/common/Toast.vue'
 import NavigationProgress from '@/components/common/NavigationProgress.vue'
 import AdminComplianceDialog from '@/components/admin/AdminComplianceDialog.vue'
@@ -8,6 +8,8 @@ import { resolveRouteDocumentTitle } from '@/router/title'
 import AnnouncementPopup from '@/components/common/AnnouncementPopup.vue'
 import { useAppStore, useAuthStore, useSubscriptionStore, useAnnouncementStore, useAdminComplianceStore, useAdminSettingsStore } from '@/stores'
 import { getSetupStatus } from '@/api/setup'
+import { isSeparatedDeployment, getDeploymentContract } from '@/api/url'
+import SetupUnavailableView from '@/views/setup/SetupUnavailableView.vue'
 import { updateFavicon } from '@/utils/branding'
 import { FeatureFlags, isFeatureFlagEnabled } from '@/utils/featureFlags'
 import { resolveSiteBillingMode } from '@/utils/siteBillingMode'
@@ -20,6 +22,21 @@ const subscriptionStore = useSubscriptionStore()
 const announcementStore = useAnnouncementStore()
 const adminComplianceStore = useAdminComplianceStore()
 const adminSettingsStore = useAdminSettingsStore()
+
+const separated = isSeparatedDeployment()
+const setupState = ref<'loading' | 'required' | 'error' | 'ready'>(separated ? 'loading' : 'ready')
+async function checkSeparatedStatus() {
+  setupState.value = 'loading'
+  try {
+    getDeploymentContract()
+    const status = await getSetupStatus()
+    if (status.needs_setup) { setupState.value = 'required'; return }
+    if (route.path === '/setup') await router.replace('/login')
+    setupState.value = 'ready'
+    await appStore.fetchPublicSettings()
+    updateDocumentTitle()
+  } catch { setupState.value = 'error' }
+}
 
 function updateDocumentTitle() {
   const customMenuItems = [
@@ -142,6 +159,11 @@ onBeforeUnmount(() => {
 onMounted(async () => {
   window.addEventListener('admin-compliance-required', onAdminComplianceRequired)
 
+  if (separated) {
+    await checkSeparatedStatus()
+    return
+  }
+
   // Check if setup is needed
   try {
     const status = await getSetupStatus()
@@ -163,7 +185,8 @@ onMounted(async () => {
 
 <template>
   <NavigationProgress />
-  <RouterView />
+  <SetupUnavailableView v-if="separated && setupState !== 'ready'" :state="setupState" @retry="checkSeparatedStatus" />
+  <RouterView v-else />
   <Toast />
   <AnnouncementPopup />
   <AdminComplianceDialog />
