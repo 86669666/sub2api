@@ -72,6 +72,7 @@ class Relay:
         self.tasks = set()
         self.writers = set()
         self.errors = 0
+        self.closing = False
 
     async def start(self):
         try:
@@ -90,7 +91,7 @@ class Relay:
             raise
 
     def accept(self, reader, writer, target):
-        if len(self.tasks) >= LIMIT:
+        if self.closing or len(self.tasks) >= LIMIT:
             writer.close()
             return
         self.writers.add(writer)
@@ -135,18 +136,23 @@ class Relay:
                     self.writers.discard(stream)
 
     async def close(self):
+        # Python 3.12 Server.wait_closed also waits for accepted transports.
+        # Stop accepts, close those transports/tasks, THEN wait for the server.
+        self.closing = True
         for server in self.servers:
             server.close()
-        await asyncio.gather(*(s.wait_closed() for s in self.servers))
-        for task in list(self.tasks):
+        tasks, writers = list(self.tasks), list(self.writers)
+        for task in tasks:
             task.cancel()
-        await asyncio.gather(*list(self.tasks), return_exceptions=True)
-        for writer in list(self.writers):
+        for writer in writers:
             writer.close()
-            try:
-                await asyncio.wait_for(writer.wait_closed(), 2)
-            except (OSError, asyncio.TimeoutError):
-                pass
+
+        async def finish():
+            await asyncio.gather(*tasks, return_exceptions=True)
+            await asyncio.gather(*(w.wait_closed() for w in writers), return_exceptions=True)
+            await asyncio.gather(*(s.wait_closed() for s in self.servers))
+        # One total deadline, not a separate allowance for each connection.
+        await asyncio.wait_for(finish(), 8)
         self.servers.clear()
         self.writers.clear()
 
@@ -186,10 +192,17 @@ async def child(config, ready, receipt):
         await stop.wait()
     finally:
         loop.remove_reader(sys.stdin.fileno())
-        await relay.close()
+        cleanup_error = None
+        try:
+            await relay.close()
+        except BaseException as error:
+            cleanup_error = error
         receipt.write_text(json.dumps({'pid': os.getpid(), 'reason': reason, 'active_tasks': len(relay.tasks),
-                                       'active_writers': len(relay.writers), 'listeners_closed': True,
-                                       'connection_errors': relay.errors}))
+                                       'active_writers': len(relay.writers), 'listeners_closed': not relay.servers,
+                                       'connection_errors': relay.errors,
+                                       'cleanup_error': type(cleanup_error).__name__ if cleanup_error else None}))
+        if cleanup_error is not None:
+            raise cleanup_error
 
 
 if __name__ == '__main__':

@@ -11,8 +11,13 @@ root=pathlib.Path(__file__).resolve().parents[3];out=args.evidence.resolve();out
 env={k:os.environ[k] for k in ('PATH','HOME') if k in os.environ}
 run_id='sub2api-d0-'+uuid.uuid4().hex[:12];containers=[];images=[];network=False;relay=None;relay_log=None;targets=None;owned_images={};container_ids={};network_id=None
 receipt={'run_id':run_id,'started_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'scope':'HTTP loopback; mock upstream only, no DB/Redis/provider; not public TLS acceptance','commands':[],'checks':[],'outcome':'failed','teardown':[]}
-def run(cmd,check=True,extra_env=None):
-    r=subprocess.run(cmd,cwd=root,env={**env, **(extra_env or {})},text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+def run(cmd,check=True,extra_env=None,timeout=None):
+    try:
+        r=subprocess.run(cmd,cwd=root,env={**env, **(extra_env or {})},text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        output=error.stdout or ''
+        if isinstance(output,bytes):output=output.decode(errors='replace')
+        r=subprocess.CompletedProcess(cmd,124,output+'\ncommand exceeded explicit timeout\n')
     n=len(receipt['commands']);(out/f'command-{n:03}.log').write_text(r.stdout)
     receipt['commands'].append({'argv':cmd,'exit_code':r.returncode,'log':f'command-{n:03}.log'})
     if check and r.returncode:raise RuntimeError(f'command failed: {cmd[:3]} (see command-{n:03}.log)')
@@ -104,7 +109,7 @@ try:
     sha=run(['git','rev-parse','HEAD']).stdout.strip();assert re.fullmatch('[a-f0-9]{40}',sha)
     assert not run(['git','status','--porcelain']).stdout.strip(),'candidate must be clean'
     receipt['candidate']=sha
-    run([sys.executable,'-B','-m','unittest','discover','-s','deploy/separated/tests','-p','test_*.py','-v'], extra_env={'GITHUB_ACTIONS':'true','RUNNER_ENVIRONMENT':'github-hosted'})
+    run([sys.executable,'-B','-m','unittest','discover','-s','deploy/separated/tests','-p','test_*.py','-v'], extra_env={'GITHUB_ACTIONS':'true','RUNNER_ENVIRONMENT':'github-hosted'},timeout=240)
     receipt['candidate']=sha;receipt['runner']={'os':os.uname().sysname,'arch':os.uname().machine,'github_run_id':os.environ.get('GITHUB_RUN_ID')}
     assert run(['docker','context','show']).stdout.strip()=='default','no alternate Docker context permitted'
     run(['docker','version'])
