@@ -270,3 +270,45 @@ func TestOpenAPIActualRegistrationAddition(t *testing.T) {
 	openAPIRead(t, "route-inventory.json", &inventory)
 	openAPIReject(t, openAPICompare(actual, inventory.Normal), "unaccepted route added: GET /openapi-unaccepted-route")
 }
+
+func TestOpenAPIDecodeBoundaries(t *testing.T) {
+	for _, tc := range []struct{ name, input, want string }{
+		{"second object", `{"format":1} {}`, "trailing JSON content"},
+		{"second scalar", `{"format":1} null`, "trailing JSON content"},
+		{"trailing junk", `{"format":1} invalid`, "trailing JSON content"},
+		{"unknown typed field", `{"format":1,"unexpected":true}`, "unknown field"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var inventory openAPIInventory
+			openAPIReject(t, openAPIDecode([]byte(tc.input), &inventory), tc.want)
+		})
+	}
+	var inventory openAPIInventory
+	if err := openAPIDecode([]byte("{\"format\":1}\n\t "), &inventory); err != nil {
+		t.Fatal(err)
+	}
+	if inventory.Format != 1 {
+		t.Fatal("valid single JSON document was not decoded")
+	}
+}
+
+func TestOpenAPIClosedSchemaProfileBoundaries(t *testing.T) {
+	for _, tc := range []struct{ name, schema, want string }{
+		{"open object", `{"type":"object","properties":{"x":{"type":"string"}},"required":["x"],"additionalProperties":true}`, "objects must be closed"},
+		{"implicit open object", `{"type":"object","properties":{"x":{"type":"string"}},"required":["x"]}`, "objects must be closed"},
+		{"nested open object", `{"type":"object","properties":{"x":{"type":"object","properties":{"y":{"type":"string"}},"required":["y"]}},"required":["x"],"additionalProperties":false}`, "objects must be closed"},
+		{"unsupported array", `{"type":"array"}`, "unsupported A0 schema type"},
+		{"unsupported ref", `{"type":"string","$ref":"#/components/schemas/Other"}`, "unsupported A0 schema keyword"},
+		{"object keyword on scalar", `{"type":"string","additionalProperties":false}`, "object keyword on string"},
+		{"unknown required property", `{"type":"object","properties":{"x":{"type":"string"}},"required":["y"],"additionalProperties":false}`, "unknown required property"},
+		{"duplicate required property", `{"type":"object","properties":{"x":{"type":"string"}},"required":["x","x"],"additionalProperties":false}`, "invalid required property"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var schema map[string]any
+			if err := openAPIDecode([]byte(tc.schema), &schema); err != nil {
+				t.Fatal(err)
+			}
+			openAPIReject(t, openAPICheckSchema(schema), tc.want)
+		})
+	}
+}

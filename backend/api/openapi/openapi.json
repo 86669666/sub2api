@@ -6,7 +6,7 @@
     "description": "Partial executable contract. Other routes are individually tracked in route-inventory.json. Bootstrap setup and provider protocols are not covered by this document."
   },
   "x-contract-scope": "normal-mode A0 partial",
-  "x-source-baseline": "0c28b7d72852fb622ce408232cce0e27afe1fa25",
+  "x-source-baseline": "0025450b1d836ea6b4bcdbbbb411729bccd54eca",
   "x-schema-validation-profile": "a0-closed-object-v1",
   "paths": {
     "/health": {
