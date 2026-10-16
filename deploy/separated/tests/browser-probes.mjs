@@ -4,7 +4,7 @@ import { writeFile } from 'node:fs/promises'
 const panel='http://127.0.0.1:8088', gateway='http://127.0.0.1:8089', mock='http://127.0.0.1:8090'
 const control=async(value)=>fetch(mock+'/__control',{method:'POST',body:JSON.stringify(value)})
 const observed=async()=> (await fetch(mock+'/__observations')).json()
-const browser=await chromium.launch({headless:true,args:['--no-sandbox','--host-resolver-rules=MAP * ~NOTFOUND']})
+const browser=await chromium.launch({headless:true,args:['--no-sandbox','--host-resolver-rules=MAP * ^NOTFOUND, EXCLUDE 127.0.0.1']})
 const evidence={browser:browser.version(),tests:[],network:[],violations:[],outcome:'failed'}
 try {
  const context=await browser.newContext()
@@ -15,7 +15,24 @@ try {
   window.__violations=[]
   document.addEventListener('securitypolicyviolation',e=>window.__violations.push({uri:e.blockedURI,directive:e.effectiveDirective}))
  })
- await page.goto(panel+'/__d0__/harness.html');await page.waitForFunction(()=>window.d0)
+ // Verify the resolver policy in this browser before business assertions.
+ const fixtureResponse=await page.goto(panel+'/__d0__/harness.html',{timeout:15000})
+ assert.equal(fixtureResponse.status(),200,'the exact loopback fixture must remain reachable')
+ await page.waitForFunction(()=>window.d0)
+ evidence.tests.push('resolver allows exact 127.0.0.1 fixture navigation')
+ for(const host of ['localhost','127.0.0.2']){
+  // A fresh blank page has no fixture CSP that could mask resolver behavior.
+  const denied=await context.newPage()
+  try {
+   let failure
+   try {await denied.goto('http://'+host+':8088/__d0__/harness.html',{timeout:10000})}
+   catch(error){failure=error}
+   assert.ok(failure,'non-exempt host must fail navigation: '+host)
+   assert.match(failure.message,/net::ERR_NAME_NOT_RESOLVED(?:\s|$)/,
+    'resolver denial must not be a timeout, CSP block or connection refusal')
+   evidence.tests.push({name:'resolver rejects non-exempt host',host,error:'net::ERR_NAME_NOT_RESOLVED'})
+  } finally {await denied.close()}
+ }
  const contract=await page.evaluate(()=>window.d0.getDeploymentContract())
  assert.deepEqual(contract,await (await fetch(panel+'/deployment-manifest.json')).json())
  evidence.harness_contract=contract
