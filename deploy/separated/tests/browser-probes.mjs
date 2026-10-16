@@ -55,7 +55,8 @@ try {
  assert.equal((await observed()).length,0)
  await page.evaluate(async()=>{try{await fetch('http://127.0.0.1:8090/csp-denied')}catch{};try{new WebSocket('ws://127.0.0.1:8090/csp-ws')}catch{}})
  evidence.violations=await page.evaluate(()=>window.__violations)
- assert.ok(evidence.violations.some(v=>v.uri.includes('8090')))
+ assert.ok(evidence.violations.some(v=>v.uri==='http://127.0.0.1:8090/csp-denied' && v.directive==='connect-src'))
+ assert.ok(evidence.violations.some(v=>v.uri==='ws://127.0.0.1:8090/csp-ws' && v.directive==='connect-src'))
  assert.equal((await observed()).length,0)
  await control({clear:true,wsRedirect:true})
  await page.evaluate(async()=>{const stop=window.d0.subscribeQPS(()=>{},{token:'ADMIN-JWT-SENTINEL',maxReconnectAttempts:0});await new Promise(r=>setTimeout(r,600));stop()})
@@ -66,6 +67,21 @@ try {
  assert.equal(await third.evaluate(async(g)=>{try{await fetch(g+'/v1/usage',{headers:{Authorization:'Bearer SENTINEL'}});return false}catch{return true}},gateway),true)
  assert.equal((await observed()).length,0)
  // Actual production App, router and KeyUsage component (no request interception).
+ for(const mode of ['http500','headers','body']){
+  await control({setup:{code:0,data:{needs_setup:false,step:'completed'}},status:mode==='http500'?500:200,setupHang:mode==='http500'?'':mode})
+  const started=Date.now()
+  await page.goto(panel+'/key-usage')
+  const unavailable=page.locator('[data-testid="setup-unavailable"]')
+  await unavailable.waitFor()
+  assert.equal(await page.locator('input[type=password]').count(),0)
+  await unavailable.locator('button').waitFor({timeout:45000})
+  const elapsed=Date.now()-started
+  if(mode!=='http500')assert.ok(elapsed>=29000 && elapsed<45000,'real status deadline must bound loading')
+  await control({status:200,setupHang:''})
+  await unavailable.locator('button').click()
+  await page.locator('input[type=password]').waitFor()
+  evidence.tests.push({name:'real App error/deadline and retry recovery',mode,elapsed_ms:elapsed})
+ }
  await control({setup:{code:0,data:{needs_setup:true,step:'welcome'}},status:200})
  await page.goto(panel+'/key-usage');await page.locator('[data-testid="setup-unavailable"]').waitFor()
  assert.equal(await page.locator('input[type=password]').count(),0)
