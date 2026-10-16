@@ -3085,10 +3085,14 @@ func openAICanonicalQuotaWindows(extra map[string]any, now time.Time) (window5h,
 	if used, ok := resolveAccountExtraNumber(extra, "codex_secondary_used_percent"); ok {
 		snapshot.SecondaryUsedPercent = &used
 	}
-	if minutes := parseExtraInt(extra["codex_primary_window_minutes"]); minutes > 0 {
+	// Preserve present-but-unsupported durations so Normalize only infers a
+	// complementary window for genuinely missing legacy data.
+	if raw, exists := extra["codex_primary_window_minutes"]; exists && raw != nil {
+		minutes := parseExtraInt(raw)
 		snapshot.PrimaryWindowMinutes = &minutes
 	}
-	if minutes := parseExtraInt(extra["codex_secondary_window_minutes"]); minutes > 0 {
+	if raw, exists := extra["codex_secondary_window_minutes"]; exists && raw != nil {
+		minutes := parseExtraInt(raw)
 		snapshot.SecondaryWindowMinutes = &minutes
 	}
 	normalized := snapshot.Normalize()

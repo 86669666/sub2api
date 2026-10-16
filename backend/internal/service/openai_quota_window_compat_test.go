@@ -1,11 +1,42 @@
 package service
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestCodexQuotaWindowRawExplicitUnknownDuration(t *testing.T) {
+	now := time.Date(2026, 10, 16, 0, 0, 0, 0, time.UTC)
+	for _, knownField := range []string{"primary", "secondary"} {
+		for _, knownMinutes := range []int{300, 10080} {
+			for _, unknownMinutes := range []any{0, -1, "invalid", 1440} {
+				t.Run(fmt.Sprintf("%s_%d_unknown_%v", knownField, knownMinutes, unknownMinutes), func(t *testing.T) {
+					unknownField := "secondary"
+					if knownField == "secondary" {
+						unknownField = "primary"
+					}
+					extra := map[string]any{
+						"codex_" + knownField + "_used_percent":     25.0,
+						"codex_" + knownField + "_window_minutes":   knownMinutes,
+						"codex_" + knownField + "_reset_at":         now.Add(time.Hour).Format(time.RFC3339),
+						"codex_" + unknownField + "_used_percent":   96.0,
+						"codex_" + unknownField + "_window_minutes": unknownMinutes,
+						"codex_" + unknownField + "_reset_at":       now.Add(time.Hour).Format(time.RFC3339),
+						"codex_usage_updated_at":                    now.Format(time.RFC3339),
+					}
+					want := openAIQuotaHeadroomNeutralFactor
+					if knownMinutes == 10080 {
+						want = 0.75
+					}
+					require.InDelta(t, want, openAIQuotaHeadroomFactor(&Account{Extra: extra}, now), 1e-9)
+				})
+			}
+		}
+	}
+}
 
 func TestCodexQuotaWindowPartialDurationCompatibility(t *testing.T) {
 	short, week, image, zero := 300, 10080, 1440, 0
