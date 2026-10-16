@@ -338,9 +338,19 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 		if !ok {
 			return fmt.Errorf("expected object")
 		}
-		props := schema["properties"].(map[string]any)
-		for _, raw := range schema["required"].([]any) {
-			name := raw.(string)
+		props, ok := schema["properties"].(map[string]any)
+		if !ok {
+			return fmt.Errorf("unvalidated object properties")
+		}
+		required, ok := schema["required"].([]any)
+		if !ok {
+			return fmt.Errorf("unvalidated required fields")
+		}
+		for _, raw := range required {
+			name, ok := raw.(string)
+			if !ok {
+				return fmt.Errorf("unvalidated required field name")
+			}
 			if _, ok := object[name]; !ok {
 				return fmt.Errorf("missing required %s", name)
 			}
@@ -350,7 +360,11 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 			if !ok {
 				return fmt.Errorf("unexpected property %s", name)
 			}
-			if err := openAPIValidateValue(p.(map[string]any), v); err != nil {
+			propertySchema, ok := p.(map[string]any)
+			if !ok {
+				return fmt.Errorf("unvalidated property schema %s", name)
+			}
+			if err := openAPIValidateValue(propertySchema, v); err != nil {
 				return fmt.Errorf("%s: %w", name, err)
 			}
 		}

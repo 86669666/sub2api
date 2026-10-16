@@ -132,7 +132,7 @@ func openAPIRouter(t *testing.T, bootstrap bool, executeCommon bool) (*gin.Engin
 	fill := func(v reflect.Value) {
 		for i := 0; i < v.NumField(); i++ {
 			f := v.Field(i)
-			if f.Kind() != reflect.Ptr || f.Type().Elem().Kind() != reflect.Struct {
+			if f.Kind() != reflect.Pointer || f.Type().Elem().Kind() != reflect.Struct {
 				t.Fatalf("unexpected handler aggregate field %s", v.Type().Field(i).Name)
 			}
 			f.Set(reflect.New(f.Type().Elem()))
@@ -297,7 +297,9 @@ func TestOpenAPIObserve(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err = f.Write(append(data, '\n')); err != nil {
-		f.Close()
+		if closeErr := f.Close(); closeErr != nil {
+			t.Fatalf("write observation: %v; close observation: %v", err, closeErr)
+		}
 		t.Fatal(err)
 	}
 	if err = f.Close(); err != nil {
