@@ -166,8 +166,9 @@ func classifyCodexUsageWindow(minutes int) (string, bool) {
 }
 
 // Normalize converts primary/secondary fields to canonical 5h/7d fields.
-// Recognized window_minutes are assigned to that window only. When neither
-// side reports a window, the legacy assumption is primary=7d and secondary=5h.
+// Recognized window_minutes identify their window and, when the other duration
+// is absent, its legacy complementary window. Explicit unknown durations are
+// never inferred. With neither duration, primary=7d and secondary=5h.
 // Returns nil if snapshot is nil.
 func (s *OpenAICodexUsageSnapshot) Normalize() *NormalizedCodexLimits {
 	if s == nil {
@@ -207,9 +208,23 @@ func (s *OpenAICodexUsageSnapshot) Normalize() *NormalizedCodexLimits {
 	}
 	if primaryKnown {
 		assign(primaryKind, s.PrimaryUsedPercent, s.PrimaryResetAfterSeconds, s.PrimaryWindowMinutes)
+		if !hasSecondaryWindow {
+			complement := "5h"
+			if primaryKind == "5h" {
+				complement = "7d"
+			}
+			assign(complement, s.SecondaryUsedPercent, s.SecondaryResetAfterSeconds, nil)
+		}
 	}
 	if secondaryKnown {
 		assign(secondaryKind, s.SecondaryUsedPercent, s.SecondaryResetAfterSeconds, s.SecondaryWindowMinutes)
+		if !hasPrimaryWindow {
+			complement := "5h"
+			if secondaryKind == "5h" {
+				complement = "7d"
+			}
+			assign(complement, s.PrimaryUsedPercent, s.PrimaryResetAfterSeconds, nil)
+		}
 	}
 	return result
 }
