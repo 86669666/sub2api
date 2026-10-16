@@ -44,6 +44,8 @@ func TestEasyPayWebhookConfirmationFailureDoesNotFulfill(t *testing.T) {
 			db, err := sql.Open("sqlite", "file:webhook_confirmation_"+tc.name+"?mode=memory&cache=shared")
 			require.NoError(t, err)
 			t.Cleanup(func() { _ = db.Close() })
+			_, err = db.Exec("PRAGMA foreign_keys = ON")
+			require.NoError(t, err)
 			client := enttest.NewClient(t, enttest.WithOptions(dbent.Driver(entsql.OpenDB(dialect.SQLite, db))))
 			t.Cleanup(func() { _ = client.Close() })
 			user, err := client.User.Create().SetEmail("confirmation@example.test").
