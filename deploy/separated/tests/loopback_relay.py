@@ -80,7 +80,8 @@ class Relay:
                 server = await asyncio.start_server(
                     lambda r, w, t=target: self.accept(r, w, t),
                     '127.0.0.1', target['listen'], family=2,
-                    reuse_address=False, reuse_port=False, start_serving=False,
+                    # Rebind our previous TIME_WAIT sockets, never share a live listener.
+                    reuse_address=True, reuse_port=False, start_serving=False,
                     limit=BLOCK)
                 self.servers.append(server)
             # No listener accepts until ALL binds have succeeded.
