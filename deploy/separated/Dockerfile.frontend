@@ -32,7 +32,7 @@ RUN node /app/deploy/separated/render-config.mjs "$PANEL_PUBLIC_ORIGIN" "$GATEWA
 # outDir is ../backend/internal/web/dist. Invoke vite directly.
 RUN pnpm run check:i18n \
     && pnpm exec vue-tsc -b \
-    && pnpm exec vite build --outDir /out/dist --emptyOutDir
+    && pnpm exec vite build --config vite.config.ts --outDir /out/dist --emptyOutDir
 
 FROM ${NGINX_IMAGE} AS panel
 

@@ -25,11 +25,12 @@ const adminSettingsStore = useAdminSettingsStore()
 
 const separated = isSeparatedDeployment()
 const setupLifetime = new AbortController()
+const deploymentContract = ref<ReturnType<typeof getDeploymentContract>>(null)
 const setupState = ref<'loading' | 'required' | 'error' | 'ready'>(separated ? 'loading' : 'ready')
 async function checkSeparatedStatus() {
   setupState.value = 'loading'
   try {
-    getDeploymentContract()
+    deploymentContract.value = getDeploymentContract()
     const status = await getSetupStatus(setupLifetime.signal)
     if (status.needs_setup) { setupState.value = 'required'; return }
     if (route.path === '/setup') await router.replace('/login')
@@ -189,6 +190,7 @@ onMounted(async () => {
 </script>
 
 <template>
+  <span v-if="deploymentContract" hidden data-testid="app-deployment-contract" :data-contract="JSON.stringify(deploymentContract)" />
   <NavigationProgress />
   <SetupUnavailableView v-if="separated && setupState !== 'ready'" :state="setupState" @retry="checkSeparatedStatus" />
   <RouterView v-else />

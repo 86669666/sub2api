@@ -18,7 +18,16 @@ try {
  await page.goto(panel+'/__d0__/harness.html');await page.waitForFunction(()=>window.d0)
  const contract=await page.evaluate(()=>window.d0.getDeploymentContract())
  assert.deepEqual(contract,await (await fetch(panel+'/deployment-manifest.json')).json())
- evidence.contract=contract
+ evidence.harness_contract=contract
+ const assertActualAppContract=async()=>{
+  const marker=page.locator('[data-testid="app-deployment-contract"]')
+  await marker.waitFor({state:'attached'})
+  const actual=JSON.parse(await marker.getAttribute('data-contract'))
+  assert.deepEqual(actual,contract,'actual App-consumed contract must match the image manifest')
+  const entry=await page.locator('script[type="module"][src]').getAttribute('src')
+  assert.match(entry,/^\/assets\/index-[A-Za-z0-9_-]+\.js$/)
+  evidence.app_contract={actual,entry,source:'App.vue result of its production getDeploymentContract call'}
+ }
  await page.evaluate(()=>localStorage.setItem('auth_token','JWT-SENTINEL'))
  await control({clear:true,status:200})
  await page.evaluate(async()=>{
@@ -71,6 +80,7 @@ try {
   await control({setup:{code:0,data:{needs_setup:false,step:'completed'}},status:mode==='http500'?500:200,setupHang:mode==='http500'?'':mode})
   const started=Date.now()
   await page.goto(panel+'/key-usage')
+  await assertActualAppContract()
   const unavailable=page.locator('[data-testid="setup-unavailable"]')
   await unavailable.waitFor()
   assert.equal(await page.locator('input[type=password]').count(),0)
@@ -80,10 +90,11 @@ try {
   await control({status:200,setupHang:''})
   await unavailable.locator('button').click()
   await page.locator('input[type=password]').waitFor()
+  await assertActualAppContract()
   evidence.tests.push({name:'real App error/deadline and retry recovery',mode,elapsed_ms:elapsed})
  }
  await control({setup:{code:0,data:{needs_setup:true,step:'welcome'}},status:200})
- await page.goto(panel+'/key-usage');await page.locator('[data-testid="setup-unavailable"]').waitFor()
+ await page.goto(panel+'/key-usage');await assertActualAppContract();await page.locator('[data-testid="setup-unavailable"]').waitFor()
  assert.equal(await page.locator('input[type=password]').count(),0)
  await control({setup:{code:0,data:{needs_setup:'false',step:'completed'}}})
  await page.locator('[data-testid="setup-unavailable"] button').click();await page.waitForTimeout(200)

@@ -48,6 +48,7 @@ it.each(['headers', 'body'])('real App recovers from stalled %s at 30s and retri
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
   vi.stubGlobal('scrollTo', vi.fn())
   vi.stubEnv('VITE_DEPLOYMENT_MODE', 'separated'); vi.stubEnv('VITE_API_BASE_URL', '/api/v1')
+  vi.stubEnv('VITE_BUILD_COMMIT', 'a'.repeat(40))
   vi.stubEnv('VITE_PANEL_PUBLIC_ORIGIN', 'http://localhost:3000'); vi.stubEnv('VITE_GATEWAY_BASE_URL', 'http://localhost:8089')
   const pinia = createPinia(); setActivePinia(pinia)
   const settings = vi.spyOn((await import('@/stores/app')).useAppStore(), 'fetchPublicSettings').mockResolvedValue(undefined)
@@ -61,6 +62,7 @@ it.each(['headers', 'body'])('real App recovers from stalled %s at 30s and retri
   const wrapper = mount((await import('@/App.vue')).default, { global: { plugins: [pinia, router, createI18n({ legacy: false, locale: 'en', messages: { en: { home: { login: 'Login' } } } })], stubs: { Toast: true, NavigationProgress: true, AnnouncementPopup: true, AdminComplianceDialog: true } } })
   try {
     await flushPromises()
+    expect(JSON.parse(wrapper.find('[data-testid="app-deployment-contract"]').attributes('data-contract'))).toEqual({ format: 1, mode: 'separated', candidate: 'a'.repeat(40), panel: 'http://localhost:3000', gateway: 'http://localhost:8089' })
     expect(wrapper.text()).toContain('Checking service status')
     expect(wrapper.find('button').exists()).toBe(false)
     expect(wrapper.find('[data-testid="login"]').exists()).toBe(false)
@@ -112,6 +114,7 @@ it.each(['separated', ''])('real App cancels pending status on unmount in mode %
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
   vi.stubGlobal('scrollTo', vi.fn())
   vi.stubEnv('VITE_DEPLOYMENT_MODE', mode); vi.stubEnv('VITE_API_BASE_URL', '/api/v1')
+  vi.stubEnv('VITE_BUILD_COMMIT', 'a'.repeat(40))
   vi.stubEnv('VITE_PANEL_PUBLIC_ORIGIN', 'http://localhost:3000'); vi.stubEnv('VITE_GATEWAY_BASE_URL', 'http://localhost:8089')
   const pinia = createPinia(); setActivePinia(pinia)
   const settings = vi.spyOn((await import('@/stores/app')).useAppStore(), 'fetchPublicSettings').mockResolvedValue(undefined)
