@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
+	"unicode/utf8"
 )
 
 type openAPIDocument struct {
@@ -34,14 +36,23 @@ type openAPIOperation struct {
 	Summary     string                     `json:"summary"`
 	Description string                     `json:"description"`
 	Security    *[]map[string][]string     `json:"security"`
+	RequestBody *openAPIRequestBody        `json:"requestBody,omitempty"`
 	Parameters  []openAPIParameter         `json:"parameters,omitempty"`
 	Responses   map[string]openAPIResponse `json:"responses"`
 }
+type openAPIRequestBody struct {
+	Required    bool   `json:"required"`
+	Description string `json:"description"`
+	Content     map[string]struct {
+		Schema map[string]any `json:"schema"`
+	} `json:"content"`
+}
 type openAPIParameter struct {
-	Name     string         `json:"name"`
-	In       string         `json:"in"`
-	Required bool           `json:"required"`
-	Schema   map[string]any `json:"schema"`
+	Description string         `json:"description,omitempty"`
+	Name        string         `json:"name"`
+	In          string         `json:"in"`
+	Required    bool           `json:"required"`
+	Schema      map[string]any `json:"schema"`
 }
 type openAPIHeader struct {
 	Description string         `json:"description"`
@@ -94,7 +105,7 @@ func openAPISecurityKey(requirements []map[string][]string) string {
 	return strings.Join(alternatives, "|")
 }
 func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) error {
-	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1 partial" || doc.Profile != "a1-closed-object-array-v2" {
+	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2 partial" || doc.Profile != "a2-typed-map-request-v4" {
 		return fmt.Errorf("invalid OAS/version/scope/profile metadata")
 	}
 	if len(doc.Paths) == 0 {
@@ -160,17 +171,47 @@ func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) e
 				wantParams[match[1]] = true
 			}
 			gotParams := map[string]bool{}
+			allParams := map[string]bool{}
 			for _, p := range op.Parameters {
-				if p.In != "path" || !p.Required || !wantParams[p.Name] || gotParams[p.Name] {
-					return fmt.Errorf("invalid/mismatched path parameter: %s %s", key, p.Name)
+				keyParam := p.In + ":" + p.Name
+				if p.Name == "" || allParams[keyParam] {
+					return fmt.Errorf("invalid/duplicate parameter: %s", keyParam)
+				}
+				allParams[keyParam] = true
+				switch p.In {
+				case "path":
+					if !p.Required || !wantParams[p.Name] {
+						return fmt.Errorf("invalid/mismatched path parameter: %s %s", key, p.Name)
+					}
+					gotParams[p.Name] = true
+				case "query", "header":
+					if p.Description == "" {
+						return fmt.Errorf("path parameter/query semantics missing: %s", keyParam)
+					}
+				default:
+					return fmt.Errorf("unsupported parameter location")
 				}
 				if err := openAPICheckSchema(p.Schema); err != nil {
 					return err
 				}
-				gotParams[p.Name] = true
 			}
 			if !reflect.DeepEqual(wantParams, gotParams) {
 				return fmt.Errorf("missing path parameters: %s", key)
+			}
+			if op.RequestBody != nil {
+				if method != "post" && method != "put" {
+					return fmt.Errorf("unsupported request body method")
+				}
+				if !op.RequestBody.Required || op.RequestBody.Description == "" || len(op.RequestBody.Content) != 1 {
+					return fmt.Errorf("invalid request body contract")
+				}
+				body, ok := op.RequestBody.Content["application/json"]
+				if !ok {
+					return fmt.Errorf("unsupported request media")
+				}
+				if err := openAPICheckRequestSchema(body.Schema); err != nil {
+					return err
+				}
 			}
 			if len(op.Responses) == 0 {
 				return fmt.Errorf("no responses: %s", key)
@@ -180,7 +221,10 @@ func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) e
 					return fmt.Errorf("invalid status/description: %s %s", key, status)
 				}
 				for name, header := range response.Headers {
-					if name != "Retry-After" || status != "429" || header.Description == "" || !header.Required || len(header.Schema) != 1 || header.Schema["type"] != "string" {
+					if key != "POST /api/v1/keys" && (name == "X-Idempotency-Replayed" || status == "409") {
+						return fmt.Errorf("unsupported response header contract")
+					}
+					if (!header.Required && key != "POST /api/v1/keys") || (name != "Retry-After" && name != "X-Idempotency-Replayed") || (name == "Retry-After" && status != "429" && status != "409") || (name == "X-Idempotency-Replayed" && status != "200") || header.Description == "" || len(header.Schema) != 1 || header.Schema["type"] != "string" {
 						return fmt.Errorf("unsupported response header contract")
 					}
 				}
@@ -215,20 +259,38 @@ func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) e
 	return nil
 }
 
-// A deliberately small, fail-closed JSON Schema profile for A0+A1.
-// A1 adds homogeneous arrays, array-or-null and exact numbers, not general unions.
+// A finite fail-closed profile for A0+A1+A2: nullable typed values, typed maps,
+// exact bounds and finite mixed response codes. No arbitrary unions or refs.
 // This is NOT a general OAS/JSON Schema validator. Unsupported keywords fail the
 // gate instead of silently passing: extend it with tests or adopt a reviewed
 // validator before expanding the schema dialect in later slices.
 func openAPISchemaType(schema map[string]any) (string, bool, error) {
 	if typ, ok := schema["type"].(string); ok {
+		if typ == "code" {
+			return "", false, fmt.Errorf("unsupported schema type code")
+		}
 		return typ, false, nil
 	}
-	if types, ok := schema["type"].([]any); ok {
-		if len(types) == 2 && ((types[0] == "array" && types[1] == "null") || (types[0] == "null" && types[1] == "array")) {
-			return "array", true, nil
+	if types, ok := schema["type"].([]any); ok && len(types) == 2 {
+		a, aok := types[0].(string)
+		b, bok := types[1].(string)
+		if aok && bok {
+			if a == "null" {
+				a, b = b, a
+			}
+			if b == "null" {
+				switch a {
+				case "array", "object", "string", "integer", "number", "boolean":
+					return a, true, nil
+				}
+			}
+			if (a == "integer" && b == "string") || (a == "string" && b == "integer") {
+				return "code", false, nil
+			}
 		}
-		return "", false, fmt.Errorf("unsupported type union; only array-or-null is supported")
+	}
+	if _, ok := schema["type"].([]any); ok {
+		return "", false, fmt.Errorf("unsupported type union")
 	}
 	return "", false, fmt.Errorf("schema requires an explicit type")
 }
@@ -239,7 +301,7 @@ func openAPICheckSchema(schema map[string]any) error {
 	}
 	for key := range schema {
 		switch key {
-		case "type", "properties", "required", "additionalProperties", "const", "description", "items":
+		case "type", "properties", "required", "additionalProperties", "const", "description", "items", "enum", "minimum", "maximum", "minLength", "maxLength", "format", "propertyNames":
 		default:
 			return fmt.Errorf("unsupported A0 schema keyword: %s", key)
 		}
@@ -260,11 +322,26 @@ func openAPICheckSchema(schema map[string]any) error {
 	}
 	switch typ {
 	case "object":
-		if schema["additionalProperties"] != false {
-			return fmt.Errorf("A0 objects must be closed")
+		additional, mapped := schema["additionalProperties"].(map[string]any)
+		if schema["additionalProperties"] != false && !mapped {
+			return fmt.Errorf("A0 objects must be closed or have typed additional properties")
+		}
+		if mapped {
+			if err := openAPICheckSchema(additional); err != nil {
+				return err
+			}
+		}
+		if names, exists := schema["propertyNames"]; exists {
+			n, ok := names.(map[string]any)
+			if !mapped || !ok || n["type"] != "string" {
+				return fmt.Errorf("propertyNames requires a typed map and string schema")
+			}
+			if err := openAPICheckSchema(n); err != nil {
+				return err
+			}
 		}
 		props, ok := schema["properties"].(map[string]any)
-		if !ok || len(props) == 0 {
+		if !ok || (len(props) == 0 && !mapped) {
 			return fmt.Errorf("object properties missing")
 		}
 		required, ok := schema["required"].([]any)
@@ -291,8 +368,8 @@ func openAPICheckSchema(schema map[string]any) error {
 				return err
 			}
 		}
-	case "array", "string", "boolean", "integer", "number":
-		for _, key := range []string{"properties", "required", "additionalProperties"} {
+	case "array", "string", "boolean", "integer", "number", "code":
+		for _, key := range []string{"properties", "required", "additionalProperties", "propertyNames"} {
 			if _, ok := schema[key]; ok {
 				return fmt.Errorf("object keyword on %s", typ)
 			}
@@ -309,6 +386,66 @@ func openAPICheckSchema(schema map[string]any) error {
 	default:
 		return fmt.Errorf("unsupported A0 schema type: %s", typ)
 	}
+	for _, key := range []string{"minimum", "maximum"} {
+		if v, exists := schema[key]; exists {
+			if typ != "integer" && typ != "number" {
+				return fmt.Errorf("numeric bound on %s", typ)
+			}
+			if _, err := openAPIExactNumber(v); err != nil {
+				return err
+			}
+		}
+	}
+	if lo, lok := schema["minimum"]; lok {
+		if hi, hok := schema["maximum"]; hok {
+			a, _ := openAPIExactNumber(lo)
+			b, _ := openAPIExactNumber(hi)
+			if a.Cmp(b) > 0 {
+				return fmt.Errorf("inverted bounds")
+			}
+		}
+	}
+	for _, key := range []string{"minLength", "maxLength"} {
+		if v, exists := schema[key]; exists {
+			n, err := openAPIExactNumber(v)
+			if typ != "string" || err != nil || !n.IsInt() || n.Sign() < 0 || !n.Num().IsInt64() {
+				return fmt.Errorf("invalid string length bound")
+			}
+		}
+	}
+	if f, exists := schema["format"]; exists {
+		if typ != "string" || (f != "date-time" && f != "int64") {
+			return fmt.Errorf("unsupported format")
+		}
+	}
+	if typ == "code" {
+		if _, ok := schema["enum"]; !ok {
+			return fmt.Errorf("mixed response code requires finite enum")
+		}
+	}
+	if raw, exists := schema["enum"]; exists {
+		values, ok := raw.([]any)
+		if !ok || len(values) == 0 {
+			return fmt.Errorf("empty/invalid enum")
+		}
+		copy := map[string]any{}
+		for k, v := range schema {
+			if k != "enum" {
+				copy[k] = v
+			}
+		}
+		for i, v := range values {
+			if err := openAPIValidateValue(copy, v); err != nil {
+				return fmt.Errorf("invalid enum: %w", err)
+			}
+			for _, prior := range values[:i] {
+				if openAPIEqualValue(prior, v) {
+					return fmt.Errorf("duplicate enum")
+				}
+			}
+		}
+	}
+
 	if constant, ok := schema["const"]; ok {
 		copy := map[string]any{}
 		for k, v := range schema {
@@ -396,6 +533,21 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 		if constant, ok := schema["const"]; ok && constant != nil {
 			return fmt.Errorf("constant mismatch")
 		}
+		if raw, exists := schema["enum"]; exists {
+			values, ok := raw.([]any)
+			if !ok {
+				return fmt.Errorf("invalid enum")
+			}
+			found := false
+			for _, v := range values {
+				if v == nil {
+					found = true
+				}
+			}
+			if !found {
+				return fmt.Errorf("enum mismatch")
+			}
+		}
 		return nil
 	}
 	switch typ {
@@ -422,9 +574,21 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 			}
 		}
 		for name, v := range object {
+			if raw, exists := schema["propertyNames"]; exists {
+				names, ok := raw.(map[string]any)
+				if !ok {
+					return fmt.Errorf("unvalidated propertyNames")
+				}
+				if err := openAPIValidateValue(names, name); err != nil {
+					return err
+				}
+			}
 			p, ok := props[name]
 			if !ok {
-				return fmt.Errorf("unexpected property %s", name)
+				p, ok = schema["additionalProperties"].(map[string]any)
+				if !ok {
+					return fmt.Errorf("unexpected property %s", name)
+				}
 			}
 			propertySchema, ok := p.(map[string]any)
 			if !ok {
@@ -437,6 +601,17 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 	case "string":
 		if _, ok := value.(string); !ok {
 			return fmt.Errorf("expected string")
+		}
+	case "code":
+		switch value.(type) {
+		case string:
+		case json.Number:
+			n, err := openAPIExactNumber(value)
+			if err != nil || !n.IsInt() {
+				return fmt.Errorf("invalid response code")
+			}
+		default:
+			return fmt.Errorf("invalid response code")
 		}
 	case "boolean":
 		if _, ok := value.(bool); !ok {
@@ -471,6 +646,68 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 	default:
 		return fmt.Errorf("unvalidated schema type")
 	}
+	if typ == "string" {
+		text, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("expected string")
+		}
+		for _, key := range []string{"minLength", "maxLength"} {
+			if v, exists := schema[key]; exists {
+				n, err := openAPIExactNumber(v)
+				if err != nil {
+					return err
+				}
+				count := int64(utf8.RuneCountInString(text))
+				if (key == "minLength" && count < n.Num().Int64()) || (key == "maxLength" && count > n.Num().Int64()) {
+					return fmt.Errorf("string length outside bound")
+				}
+			}
+		}
+		if schema["format"] == "date-time" {
+			if _, err := time.Parse(time.RFC3339, text); err != nil {
+				return err
+			}
+		}
+		if schema["format"] == "int64" {
+			if _, err := strconv.ParseInt(text, 10, 64); err != nil {
+				return err
+			}
+		}
+	}
+	if typ == "integer" || typ == "number" {
+		n, err := openAPIExactNumber(value)
+		if err != nil {
+			return err
+		}
+		for _, key := range []string{"minimum", "maximum"} {
+			if v, ok := schema[key]; ok {
+				bound, err := openAPIExactNumber(v)
+				if err != nil {
+					return err
+				}
+				if (key == "minimum" && n.Cmp(bound) < 0) || (key == "maximum" && n.Cmp(bound) > 0) {
+					return fmt.Errorf("number outside bound")
+				}
+			}
+		}
+	}
+	if raw, exists := schema["enum"]; exists {
+		values, ok := raw.([]any)
+		if !ok {
+			return fmt.Errorf("unvalidated enum")
+		}
+		found := false
+		for _, v := range values {
+			if openAPIEqualValue(v, value) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("enum mismatch")
+		}
+	}
+
 	if constant, ok := schema["const"]; ok && !openAPIEqualValue(constant, value) {
 		return fmt.Errorf("constant mismatch: expected %v got %v", constant, value)
 	}
@@ -485,6 +722,12 @@ func openAPIValidateResponse(op openAPIOperation, rec *httptest.ResponseRecorder
 		value := rec.Header().Get(name)
 		if header.Required && value == "" {
 			return fmt.Errorf("missing response header %s", name)
+		}
+		if value == "" && !header.Required {
+			continue
+		}
+		if name == "X-Idempotency-Replayed" && value != "true" {
+			return fmt.Errorf("invalid replay header")
 		}
 		if name == "Retry-After" {
 			if len(rec.Header().Values(name)) != 1 || value == "" {
@@ -544,6 +787,10 @@ func TestOpenAPIResponses(t *testing.T) {
 		for method, op := range methods {
 			t.Run(method+" "+path, func(t *testing.T) {
 				key := strings.ToUpper(method) + " " + path
+				if openAPIA2Operation(key) {
+					openAPIA2VerifyResponses(t, method, path, op)
+					return
+				}
 				if !openAPICommon[key] {
 					openAPIA1VerifyResponses(t, path, op)
 					return

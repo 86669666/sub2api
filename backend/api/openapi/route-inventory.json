@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "baseline": "322aa2d1c9e61ec078a81d65cd65fe0a9236b497",
+  "baseline": "5fa7524945dfcbfac8906621a327fe3e511d3195",
   "bootstrap": [
     {
       "method": "GET",
@@ -333,9 +333,9 @@
       "path": "/api/v1/keys/:id",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A2 complete user keys and bindable groups module; real JWT/handler synthetic contract tests; candidate pending independent acceptance."
     },
     {
       "method": "DELETE",
@@ -2457,36 +2457,36 @@
       "path": "/api/v1/groups/available",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A2 complete user keys and bindable groups module; real JWT/handler synthetic contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/groups/rates",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A2 complete user keys and bindable groups module; real JWT/handler synthetic contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/keys",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A2 complete user keys and bindable groups module; real JWT/handler synthetic contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/keys/:id",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A2 complete user keys and bindable groups module; real JWT/handler synthetic contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
@@ -5157,9 +5157,9 @@
       "path": "/api/v1/keys",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A2 complete user keys and bindable groups module; real JWT/handler synthetic contract tests; candidate pending independent acceptance."
     },
     {
       "method": "POST",
@@ -6435,9 +6435,9 @@
       "path": "/api/v1/keys/:id",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A2 complete user keys and bindable groups module; real JWT/handler synthetic contract tests; candidate pending independent acceptance."
     },
     {
       "method": "PUT",
