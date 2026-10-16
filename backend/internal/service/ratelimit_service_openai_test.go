@@ -466,6 +466,59 @@ func TestNormalizedCodexLimits_BothDataNoWindowMinutes(t *testing.T) {
 	}
 }
 
+func TestNormalizedCodexLimits_Image24hWindowDoesNotBecome7d(t *testing.T) {
+	used := 98.0
+	windowMinutes := 1440
+	resetAfterSeconds := 3600
+	observedAt := time.Date(2026, 10, 16, 1, 0, 0, 0, time.UTC)
+
+	updates := buildCodexUsageExtraUpdates(&OpenAICodexUsageSnapshot{
+		PrimaryUsedPercent:       &used,
+		PrimaryWindowMinutes:     &windowMinutes,
+		PrimaryResetAfterSeconds: &resetAfterSeconds,
+		UpdatedAt:                observedAt.Format(time.RFC3339),
+	}, observedAt)
+
+	require.Equal(t, 1440, updates["codex_primary_window_minutes"])
+	require.Equal(t, 98.0, updates["codex_primary_used_percent"])
+	_, has7dWindow := updates["codex_7d_window_minutes"]
+	_, has7dUsed := updates["codex_7d_used_percent"]
+	_, has5hWindow := updates["codex_5h_window_minutes"]
+	require.False(t, has7dWindow)
+	require.False(t, has7dUsed)
+	require.False(t, has5hWindow)
+
+	utilization, ok := resolveOpenAIQuotaUtilization(map[string]any{
+		"codex_usage_updated_at":       observedAt.Format(time.RFC3339),
+		"codex_7d_used_percent":        98.0,
+		"codex_7d_window_minutes":      1440,
+		"codex_7d_reset_after_seconds": 3600,
+	}, "7d", observedAt.Add(time.Minute))
+	require.False(t, ok)
+	require.Zero(t, utilization)
+}
+
+func TestNormalizedCodexLimits_StandardWindowsStillMap(t *testing.T) {
+	weeklyUsed := 9.0
+	weeklyWindow := 10080
+	shortUsed := 3.0
+	shortWindow := 300
+	snapshot := &OpenAICodexUsageSnapshot{
+		PrimaryUsedPercent:     &weeklyUsed,
+		PrimaryWindowMinutes:   &weeklyWindow,
+		SecondaryUsedPercent:   &shortUsed,
+		SecondaryWindowMinutes: &shortWindow,
+	}
+	normalized := snapshot.Normalize()
+	require.NotNil(t, normalized)
+	require.NotNil(t, normalized.Used7dPercent)
+	require.Equal(t, 9.0, *normalized.Used7dPercent)
+	require.NotNil(t, normalized.Window7dMinutes)
+	require.Equal(t, 10080, *normalized.Window7dMinutes)
+	require.NotNil(t, normalized.Used5hPercent)
+	require.Equal(t, 3.0, *normalized.Used5hPercent)
+}
+
 func TestHandle429_AnthropicPlatformUnaffected(t *testing.T) {
 	// Verify that Anthropic platform accounts still use the original logic
 	// This test ensures we don't break existing Claude account rate limiting

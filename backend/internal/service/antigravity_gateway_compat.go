@@ -71,7 +71,7 @@ func (s *AntigravityGatewayService) ForwardAsChatCompletions(
 		return nil, s.writeAntigravityCompatError(c, http.StatusBadRequest, "invalid_request_error", "model is required")
 	}
 
-	responsesRequest, err := apicompat.ChatCompletionsToResponses(&request)
+	responsesRequest, err := chatCompletionsToResponses(settingServiceConfig(s.settingService), &request)
 	if err != nil {
 		return nil, s.writeAntigravityCompatError(c, http.StatusBadRequest, "invalid_request_error", err.Error())
 	}
@@ -374,7 +374,7 @@ func (s *AntigravityGatewayService) handleAntigravityCompatTransportError(c *gin
 		}
 	}
 	if c.Request.Context().Err() != nil {
-		return s.writeAntigravityCompatError(c, http.StatusBadGateway, "client_disconnected", "Client disconnected before upstream response")
+		return s.writeAntigravityCompatError(c, antigravityStatusClientClosed, "client_disconnected", "Client disconnected before upstream response")
 	}
 	return s.writeAntigravityCompatError(c, http.StatusBadGateway, "upstream_error", "Upstream request failed after retries")
 }

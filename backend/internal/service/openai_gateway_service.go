@@ -75,6 +75,7 @@ var openaiAllowedHeaders = map[string]bool{
 	"accept-language":         true,
 	"content-type":            true,
 	"conversation_id":         true,
+	"openai-beta":             true,
 	"user-agent":              true,
 	"originator":              true,
 	"session_id":              true,
@@ -143,9 +144,31 @@ type NormalizedCodexLimits struct {
 	Window7dMinutes *int
 }
 
+// Codex usage windows that may drive account-wide auto-pause.
+// Anything else (notably the image endpoint's 1440-minute window) must not
+// be inferred as 7d. Issue #8117.
+const (
+	codexWindow5hMinMinutes = 240
+	codexWindow5hMaxMinutes = 360
+	codexWindow7dMinMinutes = 9000
+	codexWindow7dMaxMinutes = 12000
+)
+
+func classifyCodexUsageWindow(minutes int) (string, bool) {
+	switch {
+	case minutes >= codexWindow5hMinMinutes && minutes <= codexWindow5hMaxMinutes:
+		return "5h", true
+	case minutes >= codexWindow7dMinMinutes && minutes <= codexWindow7dMaxMinutes:
+		return "7d", true
+	default:
+		return "", false
+	}
+}
+
 // Normalize converts primary/secondary fields to canonical 5h/7d fields.
-// Strategy: Compare window_minutes to determine which is 5h vs 7d.
-// Returns nil if snapshot is nil or has no useful data.
+// Recognized window_minutes are assigned to that window only. When neither
+// side reports a window, the legacy assumption is primary=7d and secondary=5h.
+// Returns nil if snapshot is nil.
 func (s *OpenAICodexUsageSnapshot) Normalize() *NormalizedCodexLimits {
 	if s == nil {
 		return nil
@@ -153,69 +176,41 @@ func (s *OpenAICodexUsageSnapshot) Normalize() *NormalizedCodexLimits {
 
 	result := &NormalizedCodexLimits{}
 
-	primaryMins := 0
-	secondaryMins := 0
-	hasPrimaryWindow := false
-	hasSecondaryWindow := false
-
-	if s.PrimaryWindowMinutes != nil {
-		primaryMins = *s.PrimaryWindowMinutes
-		hasPrimaryWindow = true
+	hasPrimaryWindow := s.PrimaryWindowMinutes != nil
+	hasSecondaryWindow := s.SecondaryWindowMinutes != nil
+	primaryKind, primaryKnown := "", false
+	secondaryKind, secondaryKnown := "", false
+	if hasPrimaryWindow {
+		primaryKind, primaryKnown = classifyCodexUsageWindow(*s.PrimaryWindowMinutes)
 	}
-	if s.SecondaryWindowMinutes != nil {
-		secondaryMins = *s.SecondaryWindowMinutes
-		hasSecondaryWindow = true
+	if hasSecondaryWindow {
+		secondaryKind, secondaryKnown = classifyCodexUsageWindow(*s.SecondaryWindowMinutes)
 	}
 
-	// Determine mapping based on window_minutes
-	use5hFromPrimary := false
-	use7dFromPrimary := false
-
-	if hasPrimaryWindow && hasSecondaryWindow {
-		// Both known: smaller window is 5h, larger is 7d
-		if primaryMins < secondaryMins {
-			use5hFromPrimary = true
-		} else {
-			use7dFromPrimary = true
+	assign := func(kind string, used *float64, reset *int, window *int) {
+		switch kind {
+		case "5h":
+			result.Used5hPercent = used
+			result.Reset5hSeconds = reset
+			result.Window5hMinutes = window
+		case "7d":
+			result.Used7dPercent = used
+			result.Reset7dSeconds = reset
+			result.Window7dMinutes = window
 		}
-	} else if hasPrimaryWindow {
-		// Only primary known: classify by threshold (<=360 min = 6h -> 5h window)
-		if primaryMins <= 360 {
-			use5hFromPrimary = true
-		} else {
-			use7dFromPrimary = true
-		}
-	} else if hasSecondaryWindow {
-		// Only secondary known: classify by threshold
-		if secondaryMins <= 360 {
-			// 5h from secondary, so primary (if any data) is 7d
-			use7dFromPrimary = true
-		} else {
-			// 7d from secondary, so primary (if any data) is 5h
-			use5hFromPrimary = true
-		}
-	} else {
-		// No window_minutes: fall back to legacy assumption (primary=7d, secondary=5h)
-		use7dFromPrimary = true
 	}
 
-	// Assign values
-	if use5hFromPrimary {
-		result.Used5hPercent = s.PrimaryUsedPercent
-		result.Reset5hSeconds = s.PrimaryResetAfterSeconds
-		result.Window5hMinutes = s.PrimaryWindowMinutes
-		result.Used7dPercent = s.SecondaryUsedPercent
-		result.Reset7dSeconds = s.SecondaryResetAfterSeconds
-		result.Window7dMinutes = s.SecondaryWindowMinutes
-	} else if use7dFromPrimary {
-		result.Used7dPercent = s.PrimaryUsedPercent
-		result.Reset7dSeconds = s.PrimaryResetAfterSeconds
-		result.Window7dMinutes = s.PrimaryWindowMinutes
-		result.Used5hPercent = s.SecondaryUsedPercent
-		result.Reset5hSeconds = s.SecondaryResetAfterSeconds
-		result.Window5hMinutes = s.SecondaryWindowMinutes
+	if !hasPrimaryWindow && !hasSecondaryWindow {
+		assign("7d", s.PrimaryUsedPercent, s.PrimaryResetAfterSeconds, s.PrimaryWindowMinutes)
+		assign("5h", s.SecondaryUsedPercent, s.SecondaryResetAfterSeconds, s.SecondaryWindowMinutes)
+		return result
 	}
-
+	if primaryKnown {
+		assign(primaryKind, s.PrimaryUsedPercent, s.PrimaryResetAfterSeconds, s.PrimaryWindowMinutes)
+	}
+	if secondaryKnown {
+		assign(secondaryKind, s.SecondaryUsedPercent, s.SecondaryResetAfterSeconds, s.SecondaryWindowMinutes)
+	}
 	return result
 }
 
@@ -612,7 +607,14 @@ func (s *OpenAIGatewayService) ResolveChannelMappingAndRestrict(ctx context.Cont
 	return s.channelService.ResolveChannelMappingAndRestrict(ctx, groupID, model)
 }
 
+// isCodexImageGenerationBridgeEnabled 决定是否为 Codex 客户端自动注入 hosted
+// image_generation 工具。该工具是 OpenAI Responses 专属能力，Kimi / DeepSeek /
+// MiniMax 等经 OpenAI 网关转发的原生 Responses 上游不识别，注入后会被 400 拒绝，
+// 因此非 OpenAI 平台账号一律不桥接，后续再按账号 → 渠道 → 全局的优先级取开关。
 func (s *OpenAIGatewayService) isCodexImageGenerationBridgeEnabled(ctx context.Context, account *Account, apiKey *APIKey) bool {
+	if account == nil || account.Platform != PlatformOpenAI {
+		return false
+	}
 	if override := account.CodexImageGenerationBridgeOverride(); override != nil {
 		return *override
 	}
