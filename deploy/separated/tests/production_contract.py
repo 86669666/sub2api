@@ -1,5 +1,6 @@
 """Bind the actual index entry assets to the public deployment contract."""
 import hashlib
+import json
 from html.parser import HTMLParser
 import re
 
@@ -22,16 +23,23 @@ def verify(root, contract):
     index = (root / 'index.html').read_bytes()
     parser = EntryScripts()
     parser.feed(index.decode('utf-8'))
-    if not parser.paths:
-        raise ValueError('production index has no module entry')
-    expected = [contract[k].encode('utf-8') for k in ('candidate', 'panel', 'gateway')]
-    assets = []
-    matched = False
-    for name in parser.paths:
-        data = (root / name.lstrip('/')).read_bytes()
-        assets.append({'path': name, 'sha256': hashlib.sha256(data).hexdigest()})
-        matched |= all(value in data for value in expected)
-    if not matched:
-        raise ValueError('index-referenced production entry does not match candidate/origins')
-    return {'index_sha256': hashlib.sha256(index).hexdigest(), 'entries': assets,
+    # Vite's supported formal App layout has exactly one index entry. A
+    # second metadata/harness module must never rescue a stale App entry.
+    if len(parser.paths) != 1 or not re.fullmatch(r'/assets/index-[A-Za-z0-9_-]+\.js', parser.paths[0]):
+        raise ValueError('unsupported or ambiguous production App entry layout')
+    name = parser.paths[0]
+    data = (root / name.lstrip('/')).read_text(encoding='utf-8')
+    # Read complete JSON-compatible string literals emitted by Vite/esbuild.
+    # Unsupported literal encodings fail closed instead of substring matching.
+    literals = set()
+    for token in re.findall(r'"(?:[^"\\]|\\.)*"', data):
+        try:
+            literals.add(json.loads(token))
+        except ValueError:
+            pass  # Other JS escape formats cannot satisfy this contract.
+    expected = {contract[k] for k in ('candidate', 'panel', 'gateway')}
+    if not expected.issubset(literals):
+        raise ValueError('formal App entry does not match exact candidate/origins')
+    return {'index_sha256': hashlib.sha256(index).hexdigest(),
+            'entries': [{'path': name, 'sha256': hashlib.sha256(data.encode('utf-8')).hexdigest()}],
             'contract': contract}

@@ -27,6 +27,8 @@ jobs:
           test "$(uname -s)" = Linux
           test "$(docker context show)" = default
       - name: Test exact images and actual browser
+        env:
+          RUNNER_ENVIRONMENT: ${{ runner.environment }}
         run: >-
           python3 deploy/separated/tests/ci-run.py --execute
           --evidence "$RUNNER_TEMP/sub2api-d0-evidence"
