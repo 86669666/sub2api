@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """D0 execution gate. Only an ephemeral GitHub Actions Linux job may run this."""
 import argparse, datetime, hashlib, http.client, json, os, pathlib, re, subprocess, time, uuid, signal
+from production_contract import verify as verify_production_contract
 p=argparse.ArgumentParser();p.add_argument('--execute',action='store_true');p.add_argument('--evidence',type=pathlib.Path,required=True);args=p.parse_args()
 if not args.execute or os.environ.get('GITHUB_ACTIONS')!='true' or os.uname().sysname!='Linux':
     p.error('requires --execute in an authorized ephemeral GitHub Actions Linux job; no local runtime fallback')
@@ -61,12 +62,24 @@ try:
         cmd=['docker','run','-d','--name',cname,'--label','sub2api.d0.owner='+run_id,'--network',run_id,'-p',f'127.0.0.1:{port}:'+('8080' if name=='mock' else '80')]
         if name=='mock':cmd+=['--network-alias','backend']
         run(cmd+[cname])
-    for _ in range(40):
+    receipt['readiness'] = []
+    for attempt in range(40):
         try:
-            if request(8088,'/setup/status')['status']==200:break
-        except OSError:pass
+            response = request(8088, '/setup/status')
+            receipt['readiness'].append({'attempt': attempt, 'response': response})
+            if response['status'] == 200:break
+        except (OSError, http.client.HTTPException) as error:
+            receipt['readiness'].append({'attempt': attempt, 'error': repr(error)})
         time.sleep(.5)
-    else:raise RuntimeError('isolated panel did not become reachable')
+    else:
+        # Preserve all layers before teardown; do not replace the required host chain.
+        run(['docker', 'network', 'inspect', run_id], check=False)
+        for name in ['mock', 'panel', 'gateway']:
+            run(['docker', 'inspect', run_id+'-'+name], check=False)
+            run(['docker', 'port', run_id+'-'+name], check=False)
+        run(['docker', 'exec', run_id+'-mock', 'node', '-e',
+             "Promise.all(['http://127.0.0.1:8080/setup/status','http://"+run_id+"-panel/setup/status'].map(async u=>{try{let r=await fetch(u,{signal:AbortSignal.timeout(3000)});console.log(JSON.stringify({url:u,status:r.status,body:await r.text()}))}catch(e){console.log(JSON.stringify({url:u,error:String(e),cause:String(e.cause)}))}}))"], check=False)
+        raise RuntimeError('isolated panel did not become reachable; see readiness and network diagnostics')
     manifests=[]
     for name,path in [('panel','/usr/share/nginx/html/deployment-manifest.json'),('gateway','/etc/nginx/deployment-manifest.json')]:
         c=run_id+'-'+name
@@ -76,10 +89,11 @@ try:
     assert manifests[0]==manifests[1] and manifests[0]['candidate']==sha
     receipt['manifest']=manifests[0]
     # Inspect production app assets, not the separately compiled test harness.
-    asset_check = 'for f in /usr/share/nginx/html/assets/*.js; do if grep -Fq "$1" "$f" && grep -Fq "$2" "$f" && grep -Fq "$3" "$f"; then sha256sum "$f"; fi; done'
-    asset_receipt=run(['docker','exec',run_id+'-panel','sh','-c',asset_check,'--',sha,manifests[0]['panel'],manifests[0]['gateway']]).stdout.strip()
-    assert asset_receipt, 'production app bundle does not contain the matching candidate/origin contract'
-    receipt['production_bundle_contract_sha256']=asset_receipt
+    app_export = out / 'production-app'
+    app_export.mkdir()
+    for path in ['index.html', 'assets']:
+        run(['docker', 'cp', run_id+'-panel:/usr/share/nginx/html/'+path, str(app_export/path)])
+    receipt['production_bundle_contract'] = verify_production_contract(app_export, manifests[0])
     origin=('Origin','http://127.0.0.1:8088')
     for hs in ['', 'authorization', ' Content-Type , AUTHORIZATION, idempotency-key ', 'authorization,authorization']:
         control(clear=True)
@@ -132,6 +146,6 @@ finally:
     receipt['finished_at']=datetime.datetime.now(datetime.timezone.utc).isoformat()
     if any(x['exit_code'] for x in receipt['teardown']):receipt['outcome']='failed_teardown'
     (out/'receipt.json').write_text(json.dumps(receipt,indent=2))
-    manifest={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in out.iterdir() if p.is_file()}
+    manifest={str(p.relative_to(out)):hashlib.sha256(p.read_bytes()).hexdigest() for p in out.rglob('*') if p.is_file()}
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2))
 if receipt['outcome']!='passed':raise SystemExit(1)
