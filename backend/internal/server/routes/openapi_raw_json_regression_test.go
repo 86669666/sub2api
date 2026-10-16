@@ -69,7 +69,14 @@ func TestOpenAPIRawJSONPreservesValidInput(t *testing.T) {
 		if value["文本"] != value["escaped"] {
 			t.Fatal("Unicode value changed")
 		}
-		nested := value["a"].([]any)[1].(map[string]any)
+		items, ok := value["a"].([]any)
+		if !ok || len(items) != 2 {
+			t.Fatalf("a: expected two-element array, got %T: %v", value["a"], value["a"])
+		}
+		nested, ok := items[1].(map[string]any)
+		if !ok {
+			t.Fatalf("a[1]: expected object, got %T: %v", items[1], items[1])
+		}
 		for key, want := range map[string]string{"number": "9007199254740993", "small": "1e-400", "fraction": "0.125"} {
 			n, ok := nested[key].(json.Number)
 			if !ok || n.String() != want {
@@ -118,7 +125,15 @@ func TestOpenAPIRawJSONPreservesValidInput(t *testing.T) {
 			t.Fatal(err)
 		}
 		for i := 0; i < 40; i++ {
-			value = value.(map[string]any)["a"].([]any)[0]
+			object, ok := value.(map[string]any)
+			if !ok {
+				t.Fatalf("depth %d: expected object, got %T: %v", i, value, value)
+			}
+			items, ok := object["a"].([]any)
+			if !ok || len(items) != 1 {
+				t.Fatalf("depth %d a: expected one-element array, got %T: %v", i, object["a"], object["a"])
+			}
+			value = items[0]
 		}
 		if value != json.Number("9007199254740993") {
 			t.Fatal("deep number changed")
