@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1.7
+ARG NODE_IMAGE=node:24-alpine
+ARG NGINX_IMAGE=nginx:1.27-alpine
+FROM --platform=${BUILDPLATFORM} ${NODE_IMAGE} AS config-builder
+ARG PANEL_PUBLIC_ORIGIN
+ARG GATEWAY_PUBLIC_ORIGIN
+ARG SOURCE_COMMIT
+WORKDIR /app/deploy/separated
+COPY deploy/separated/ ./
+COPY frontend/src/api/url.ts /app/frontend/src/api/url.ts
+RUN node render-config.mjs "$PANEL_PUBLIC_ORIGIN" "$GATEWAY_PUBLIC_ORIGIN" "$SOURCE_COMMIT" /out
+FROM ${NGINX_IMAGE}
+COPY --from=config-builder /out/gateway.nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=config-builder /out/deployment-manifest.json /etc/nginx/deployment-manifest.json
+COPY deploy/separated/proxy_common.conf /etc/nginx/proxy_common.conf
+COPY deploy/separated/uri_guard.conf /etc/nginx/uri_guard.conf
+EXPOSE 80
