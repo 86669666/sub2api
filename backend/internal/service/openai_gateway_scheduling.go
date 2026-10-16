@@ -681,6 +681,11 @@ func resolveOpenAIQuotaUtilization(extra map[string]any, window string, now time
 	if usedPercent <= 0 {
 		return 0, false
 	}
+	// A stored window that is not actually 5h/7d (image 1440-minute quota
+	// previously written into codex_7d_*) must not pause the whole account.
+	if !codexCanonicalWindowMatches(extra, window) {
+		return 0, false
+	}
 	if openAIQuotaWindowReset(extra, window, now) {
 		return 0, false
 	}
@@ -747,6 +752,25 @@ func openAICodexWindowResetAt(extra map[string]any, window string) (time.Time, b
 		return time.Time{}, false
 	}
 	return updatedAt.Add(time.Duration(resetAfter) * time.Second), true
+}
+
+// codexCanonicalWindowMatches reports whether a persisted canonical window
+// may be used for account-wide auto-pause. Missing window minutes keep the
+// legacy behavior. A present but unrecognized duration does not.
+func codexCanonicalWindowMatches(extra map[string]any, window string) bool {
+	if len(extra) == 0 {
+		return true
+	}
+	raw, ok := extra["codex_"+window+"_window_minutes"]
+	if !ok || raw == nil {
+		return true
+	}
+	minutes := parseExtraInt(raw)
+	if minutes <= 0 {
+		return true
+	}
+	kind, recognized := classifyCodexUsageWindow(minutes)
+	return recognized && kind == window
 }
 
 func readOpenAIQuotaUsedPercent(extra map[string]any, window string) float64 {
