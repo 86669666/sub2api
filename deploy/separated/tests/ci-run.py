@@ -109,6 +109,9 @@ try:
     sha=run(['git','rev-parse','HEAD']).stdout.strip();assert re.fullmatch('[a-f0-9]{40}',sha)
     assert not run(['git','status','--porcelain']).stdout.strip(),'candidate must be clean'
     receipt['candidate']=sha
+    node_version=run(['node','--version']).stdout.strip()
+    assert re.fullmatch(r'v24\.\d+\.\d+',node_version),'expected explicit CI Node24'
+    receipt['node_version']=node_version
     run([sys.executable,'-B','-m','unittest','discover','-s','deploy/separated/tests','-p','test_*.py','-v'], extra_env={'GITHUB_ACTIONS':'true','RUNNER_ENVIRONMENT':'github-hosted'},timeout=240)
     receipt['candidate']=sha;receipt['runner']={'os':os.uname().sysname,'arch':os.uname().machine,'github_run_id':os.environ.get('GITHUB_RUN_ID')}
     assert run(['docker','context','show']).stdout.strip()=='default','no alternate Docker context permitted'
