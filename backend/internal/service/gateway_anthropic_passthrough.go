@@ -637,6 +637,11 @@ func parseSSEUsagePassthrough(data string, usage *ClaudeUsage) {
 			usage.InputTokens = int(msgUsage.Get("input_tokens").Int())
 			usage.CacheCreationInputTokens = int(msgUsage.Get("cache_creation_input_tokens").Int())
 			usage.CacheReadInputTokens = int(msgUsage.Get("cache_read_input_tokens").Int())
+			// 非零 output_tokens 必须记下。流在 message_delta 前结束时，
+			// 否则已观测输出会被记成 0（issue #7873）。0 不写入，避免抹掉已有值。
+			if v := msgUsage.Get("output_tokens").Int(); v > 0 {
+				usage.OutputTokens = int(v)
+			}
 
 			// 保持与通用解析一致：message_start 允许覆盖 5m/1h 明细（包括 0）。
 			cc5m := msgUsage.Get("cache_creation.ephemeral_5m_input_tokens")

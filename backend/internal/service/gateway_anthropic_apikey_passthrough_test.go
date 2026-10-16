@@ -1298,6 +1298,18 @@ func TestGatewayService_ParseSSEUsagePassthrough_MessageStartFallbacks(t *testin
 	require.Equal(t, 4, usage.CacheCreation1hTokens)
 }
 
+func TestGatewayService_ParseSSEUsagePassthrough_MessageStartKeepsObservedOutputTokens(t *testing.T) {
+	usage := &ClaudeUsage{}
+	parseSSEUsagePassthrough(`{"type":"message_start","message":{"usage":{"input_tokens":10,"output_tokens":8}}}`, usage)
+	require.Equal(t, 8, usage.OutputTokens)
+
+	parseSSEUsagePassthrough(`{"type":"message_start","message":{"usage":{"input_tokens":10,"output_tokens":0}}}`, usage)
+	require.Equal(t, 8, usage.OutputTokens, "零值不得覆盖已观测输出")
+
+	parseSSEUsagePassthrough(`{"type":"message_delta","usage":{"output_tokens":20}}`, usage)
+	require.Equal(t, 20, usage.OutputTokens)
+}
+
 func TestGatewayService_ParseSSEUsagePassthrough_MessageDeltaSelectiveOverwrite(t *testing.T) {
 	usage := &ClaudeUsage{}
 	start := `{"type":"message_start","message":{"usage":{"input_tokens":10,"cache_creation_input_tokens":463184,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":463184}}}}`

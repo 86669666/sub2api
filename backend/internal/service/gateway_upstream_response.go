@@ -1229,6 +1229,13 @@ func (s *GatewayService) extractSSEUsagePatch(event map[string]any) *sseUsagePat
 				patch.hasCacheCreation1h = true
 			}
 		}
+		// message_start 可能已经带上非零 output_tokens。流在 message_delta
+		// 之前断开时，忽略它会把已观测到的输出记成 0（issue #7873）。
+		// 0 不覆盖，后续 message_delta 的更大累计值仍会覆盖这里。
+		if v, ok := parseSSEUsageInt(usageObj["output_tokens"]); ok && v > 0 {
+			patch.outputTokens = v
+			patch.hasOutputTokens = true
+		}
 		return patch
 
 	case "message_delta":
