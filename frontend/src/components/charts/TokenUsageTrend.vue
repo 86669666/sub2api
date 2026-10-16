@@ -200,7 +200,7 @@ const lineOptions = computed(() => ({
         drawOnChartArea: false
       },
       ticks: {
-        color: chartColors.value.cacheHitRate,
+        color: chartColors.value.muted,
         font: {
           size: 10
         },
