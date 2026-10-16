@@ -1,0 +1,126 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Sub2API normal-mode HTTP contract — A0 subset",
+    "version": "0.1.0",
+    "description": "Partial executable contract. Other routes are individually tracked in route-inventory.json. Bootstrap setup and provider protocols are not covered by this document."
+  },
+  "x-contract-scope": "normal-mode A0 partial",
+  "x-source-baseline": "0025450b1d836ea6b4bcdbbbb411729bccd54eca",
+  "x-schema-validation-profile": "a0-closed-object-v1",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Process liveness only; does not assert dependency readiness.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful normal-mode response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "const": "ok"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setup/status": {
+      "get": {
+        "operationId": "getNormalSetupStatus",
+        "summary": "Already-initialized normal mode; not bootstrap setup status.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful normal-mode response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "needs_setup": {
+                          "type": "boolean",
+                          "const": false
+                        },
+                        "step": {
+                          "type": "string",
+                          "const": "completed"
+                        }
+                      },
+                      "required": [
+                        "needs_setup",
+                        "step"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event_logging/batch": {
+      "post": {
+        "operationId": "ignoreTelemetryBatch",
+        "summary": "Discard telemetry and return an empty 200 response.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful normal-mode response."
+          }
+        },
+        "description": "The handler does not parse or retain the request body. No request-body schema or processing guarantee is claimed. The successful response has no body and no Content-Type."
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "AdminAPIKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      },
+      "APIKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      },
+      "GoogleAPIKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-goog-api-key"
+      }
+    }
+  }
+}
