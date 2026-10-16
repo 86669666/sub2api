@@ -32,12 +32,13 @@ import (
 func TestEasyPayWebhookConfirmationFailureDoesNotFulfill(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	for _, tc := range []struct {
-		name   string
-		status int
-		money  string
+		name       string
+		status     int
+		money      string
+		wantDetail string
 	}{
-		{"non_finite_amount", http.StatusOK, `"NaN"`},
-		{"http_failure_with_paid_body", http.StatusServiceUnavailable, `"10.00"`},
+		{"non_finite_amount", http.StatusOK, `"NaN"`, "amount mismatch"},
+		{"http_failure_with_paid_body", http.StatusServiceUnavailable, `"10.00"`, "HTTP status 503"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
@@ -54,7 +55,7 @@ func TestEasyPayWebhookConfirmationFailureDoesNotFulfill(t *testing.T) {
 			order, err := client.PaymentOrder.Create().SetUserID(user.ID).
 				SetUserEmail(user.Email).SetUserName(user.Username).
 				SetAmount(10).SetPayAmount(10).SetFeeRate(0).
-				SetRechargeCode("TEST-CONFIRM").SetOutTradeNo("confirmation-order").
+				SetRechargeCode("TEST-CONFIRM").SetOutTradeNo("confirmation-order").SetPaymentTradeNo("").
 				SetPaymentType(payment.TypeAlipay).SetOrderType(payment.OrderTypeBalance).
 				SetStatus(service.OrderStatusPending).SetExpiresAt(time.Now().Add(time.Hour)).
 				SetClientIP("127.0.0.1").SetSrcHost("example.test").Save(ctx)
@@ -107,6 +108,8 @@ func TestEasyPayWebhookConfirmationFailureDoesNotFulfill(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, audits, 1)
 			require.Equal(t, "PAYMENT_UPSTREAM_UNCONFIRMED", audits[0].Action)
+			require.Contains(t, audits[0].Detail, tc.wantDetail)
+			require.NotContains(t, audits[0].Detail, testKey)
 		})
 	}
 }
