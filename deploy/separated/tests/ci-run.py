@@ -31,8 +31,47 @@ def request(port,path,method='GET',headers=(),body=None):
     c.endheaders(body.encode() if body is not None else None)
     r=c.getresponse();data=r.read();result={'status':r.status,'headers':r.getheaders(),'body':data.decode(errors='replace')};c.close();return result
 
-def control(**values):request(8090,'/__control','POST',body=json.dumps(values))
-def rows():return json.loads(request(8090,'/__observations')['body'])
+last_control=None
+def control(**values):
+    global last_control
+    item={'intended':values};receipt.setdefault('controls',[]).append(item)
+    result=request(8090,'/__control','POST',body=json.dumps(values));item['response']=result
+    assert result['status']==200 and header(result,'Cache-Control')==['no-store'],item
+    ack=json.loads(result['body']);item['ack']=ack
+    assert type(ack['previousRevision']) is int and ack['previousRevision']>=0
+    assert type(ack['revision']) is int and ack['revision']==ack['previousRevision']+1
+    assert type(ack['sequence']) is int and ack['sequence']>=0
+    assert type(ack['status']) is int and 200<=ack['status']<=599
+    if last_control is not None:
+        assert ack['previousRevision']==last_control['revision']
+        assert ack['sequence']>=last_control['sequence']
+        assert ack['status']==values.get('status',last_control['status'])
+    elif 'status' in values:assert ack['status']==values['status']
+    for key in ('setup','setupHang','wsRedirect'):
+        if key in values:assert ack[key]==values[key]
+    last_control=ack
+    return ack
+
+def rows():
+    result=request(8090,'/__observations')
+    assert result['status']==200 and header(result,'Cache-Control')==['no-store'],result
+    value=json.loads(result['body']);assert isinstance(value,list)
+    return value
+
+def fresh_gateway_response(name,path,headers,ack):
+    item={'name':name,'ack':ack,'before':rows()};receipt.setdefault('gateway_stages',[]).append(item)
+    result=request(8089,path,headers=headers);item['response']=result;item['after']=rows()
+    assert len(item['after'])==len(item['before'])+1,item
+    row=item['after'][-1]
+    assert row['method']=='GET' and row['url']==path
+    assert row['revision']==ack['revision'] and row['sequence']==ack['sequence']+1
+    assert row['status']==result['status']==ack['status']
+    expected_id=f"d0-r{ack['revision']}-s{ack['sequence']+1}"
+    assert row['responseId']==expected_id and header(result,'X-Request-Id')==[expected_id]
+    assert header(result,'Cache-Control')==['public, max-age=3600']
+    fixture=json.loads(result['body'])['fixture']
+    assert fixture=={key:row[key] for key in ('revision','sequence','status','responseId','keyTag')}
+    return result
 def header(result,name):return [v for k,v in result['headers'] if k.lower()==name.lower()]
 def check(name,result,status,allow=False):
     assert result['status']==status,(name,result)
@@ -112,6 +151,7 @@ try:
     node_version=run(['node','--version']).stdout.strip()
     assert re.fullmatch(r'v24\.\d+\.\d+',node_version),'expected explicit CI Node24'
     receipt['node_version']=node_version
+    run(['node','--test','deploy/separated/tests/cache-contract.test.mjs'],timeout=30)
     run([sys.executable,'-B','-m','unittest','discover','-s','deploy/separated/tests','-p','test_*.py','-v'], extra_env={'GITHUB_ACTIONS':'true','RUNNER_ENVIRONMENT':'github-hosted'},timeout=240)
     receipt['candidate']=sha;receipt['runner']={'os':os.uname().sysname,'arch':os.uname().machine,'github_run_id':os.environ.get('GITHUB_RUN_ID')}
     assert run(['docker','context','show']).stdout.strip()=='default','no alternate Docker context permitted'
@@ -181,13 +221,13 @@ try:
         check('valid preflight '+hs,request(8089,'/v1/images/batches','OPTIONS',[origin,('Access-Control-Request-Method','POST'),('Access-Control-Request-Headers',hs)]),204,True);assert rows()==[]
     invalid=[[( 'Origin',x),('Access-Control-Request-Method','GET')] for x in ['null','http://127.0.0.1:8090','HTTP://127.0.0.1:8088','http://127.0.0.1:8088.evil','http://127.0.0.1:8088, null']]
     invalid += [[origin], [origin,('Access-Control-Request-Method','get')], [origin,('Access-Control-Request-Method','PUT')], [],[origin,origin,('Access-Control-Request-Method','GET')]]
-    invalid += [[origin,('Access-Control-Request-Method','POST'),('Access-Control-Request-Headers',x)] for x in ['authorization,','authorization,,content-type','x-api-key','cookie','authorization;content-type']]
+    invalid += [[origin,('Access-Control-Request-Method','POST'),('Access-Control-Request-Headers',x)] for x in ['authorization,','authorization,,content-type','x-api-key','cookie','authorization;content-type','cache-control','pragma']]
     for hs in invalid:
         control(clear=True);check('invalid preflight',request(8089,'/v1/usage','OPTIONS',hs),403);assert rows()==[]
     for path in ['/v1/images/batchesX','/v1/USAGE','/v1/images/%62atches','/v1/images/batches/%2e','/v1/images/batches/a%2fb','/v1/images/batches/%252f','/v1//usage','/v1/images/../usage']:
         control(clear=True);check('rejected path '+path,request(8089,path,headers=[origin]),403);assert rows()==[]
     for status in [401,403,429,500]:
-        control(status=status);r=request(8089,'/v1/usage',headers=[origin,('Authorization','Bearer FIXTURE')]);check('actual backend error',r,status,True);assert 'Accept-Encoding' in ','.join(header(r,'Vary'))
+        ack=control(status=status);r=fresh_gateway_response('actual backend error','/v1/usage',[origin,('Authorization','Bearer FIXTURE')],ack);check('actual backend error',r,status,True);assert 'Accept-Encoding' in ','.join(header(r,'Vary'))
     control(status=200)
     check('actual method rejected',request(8089,'/v1/usage','PUT',[origin]),405,True)
     check('SDK unchanged',request(8089,'/v1/other',headers=[('Authorization','Bearer FIXTURE')]),200)

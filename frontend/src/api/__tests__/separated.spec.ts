@@ -23,7 +23,7 @@ it('nine batch operations use only the explicit key and fixed fetch policy',asyn
   await b.listBatchImageItems('KEY','job');await b.cancelBatchImageJob('KEY','job');await b.downloadBatchImageZip('KEY','job')
   await b.getBatchImageItemContent('KEY','job','item',0);await b.deleteBatchImageJobRecord('KEY','job')
   expect(fetcher).toHaveBeenCalledTimes(9)
-  for(const [url,init] of fetcher.mock.calls){expect(url).toMatch(/^http:\/\/localhost:8089\/v1\/images\/batches/);expect(init).toMatchObject({credentials:'omit',redirect:'error',mode:'cors'});expect(init.headers.Authorization).toBe('Bearer KEY');expect(JSON.stringify(init)).not.toContain('PANEL-JWT')}
+  for(const [url,init] of fetcher.mock.calls){expect(url).toMatch(/^http:\/\/localhost:8089\/v1\/images\/batches/);expect(init).toMatchObject({credentials:'omit',redirect:'error',mode:'cors',cache:'no-store'});expect(init.headers.Authorization).toBe('Bearer KEY');expect(JSON.stringify(init)).not.toContain('PANEL-JWT')}
   expect(fetcher.mock.calls[0][1].headers).toEqual({Authorization:'Bearer KEY','Content-Type':'application/json','Idempotency-Key':'IDEM'})
   fetcher.mockResolvedValueOnce({ok:false,status:429,statusText:'limit',headers:new Headers({'X-Request-Id':'fixture-id'}),json:async()=>({error:{message:'limit'}})})
   await expect(b.getBatchImageJob('KEY','job')).rejects.toMatchObject({requestId:'fixture-id'})
@@ -49,4 +49,28 @@ it('WS validates fixed path before token read and closes invalid attempts',async
 it('rejects an absolute panel API before an Axios client can attach a JWT',async()=>{
  vi.stubEnv('VITE_API_BASE_URL','https://wrong.example/api/v1')
  await expect(import('../client')).rejects.toThrow('Separated panel API')
+})
+
+
+it('gateway cache and credential policy cannot be overridden by runtime options', async () => {
+  const fetcher = vi.fn().mockResolvedValue(new Response('{}'))
+  vi.stubGlobal('fetch', fetcher)
+  const { gatewayFetch } = await import('../gateway')
+  const signal = new AbortController().signal
+  await gatewayFetch('/v1/usage', 'KEY-A', {
+    signal, cache: 'force-cache', credentials: 'include', mode: 'no-cors', redirect: 'follow',
+    headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache', Cookie: 'PANEL' },
+  } as any)
+  expect(fetcher.mock.calls[0][1]).toEqual({
+    method: 'GET', headers: { Authorization: 'Bearer KEY-A' }, body: undefined, signal,
+    credentials: 'omit', mode: 'cors', redirect: 'error', cache: 'no-store',
+  })
+  await gatewayFetch('/v1/usage', 'KEY-B')
+  expect(fetcher.mock.calls[1][0]).toBe(fetcher.mock.calls[0][0])
+  expect(fetcher.mock.calls[1][1].headers).toEqual({ Authorization: 'Bearer KEY-B' })
+  for (const path of ['/api/v1/auth/me', '//evil', '/v1/../api/v1']) {
+    expect(() => gatewayFetch(path, 'KEY')).toThrow()
+  }
+  expect(() => gatewayFetch('/v1/usage', 'KEY', { method: 'PUT' } as any)).toThrow()
+  expect(fetcher).toHaveBeenCalledTimes(2)
 })

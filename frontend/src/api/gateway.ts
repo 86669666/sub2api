@@ -15,6 +15,6 @@ export function gatewayFetch(path: string, apiKey: string, options: GatewayOptio
   if (options.idempotencyKey !== undefined) headers['Idempotency-Key'] = options.idempotencyKey
   return fetch(buildGatewayUrl(gatewayPath(path)), {
     method: options.method ?? 'GET', headers, body: options.body, signal: options.signal,
-    credentials: 'omit', mode: 'cors', redirect: 'error',
+    credentials: 'omit', mode: 'cors', redirect: 'error', cache: 'no-store',
   })
 }
