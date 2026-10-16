@@ -1,13 +1,13 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Sub2API normal-mode HTTP contract — A0 subset",
-    "version": "0.1.0",
+    "title": "Sub2API normal-mode HTTP contract — A0+A1 subset",
+    "version": "0.2.0",
     "description": "Partial executable contract. Other routes are individually tracked in route-inventory.json. Bootstrap setup and provider protocols are not covered by this document."
   },
-  "x-contract-scope": "normal-mode A0 partial",
-  "x-source-baseline": "0025450b1d836ea6b4bcdbbbb411729bccd54eca",
-  "x-schema-validation-profile": "a0-closed-object-v1",
+  "x-contract-scope": "normal-mode A0+A1 partial",
+  "x-source-baseline": "322aa2d1c9e61ec078a81d65cd65fe0a9236b497",
+  "x-schema-validation-profile": "a1-closed-object-array-v2",
   "paths": {
     "/health": {
       "get": {
@@ -98,6 +98,707 @@
         },
         "description": "The handler does not parse or retain the request body. No request-body schema or processing guarantee is claimed. The successful response has no body and no Content-Type."
       }
+    },
+    "/api/v1/settings/public": {
+      "get": {
+        "operationId": "getPublicSettings",
+        "summary": "Frontend startup settings, without authentication.",
+        "description": "No path/query parameters or request body are consumed. Authorization and x-api-key are ignored by this public route. JSON responses only: no empty-body response, SSE or WebSocket upgrade. Public DTO explicitly excludes secrets; configured public IDs and site keys are intentional. All top-level data fields are required and non-null except custom_endpoints. Rate limiting is conditional on public source IP and configured settings.",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Complete public settings DTO.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "registration_enabled": {
+                          "type": "boolean"
+                        },
+                        "email_verify_enabled": {
+                          "type": "boolean"
+                        },
+                        "force_email_on_third_party_signup": {
+                          "type": "boolean"
+                        },
+                        "registration_email_suffix_whitelist": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "registration_email_domain_quota_enabled": {
+                          "type": "boolean"
+                        },
+                        "promo_code_enabled": {
+                          "type": "boolean"
+                        },
+                        "password_reset_enabled": {
+                          "type": "boolean"
+                        },
+                        "invitation_code_enabled": {
+                          "type": "boolean"
+                        },
+                        "totp_enabled": {
+                          "type": "boolean"
+                        },
+                        "passkey_enabled": {
+                          "type": "boolean"
+                        },
+                        "login_agreement_enabled": {
+                          "type": "boolean"
+                        },
+                        "login_agreement_mode": {
+                          "type": "string"
+                        },
+                        "login_agreement_updated_at": {
+                          "type": "string"
+                        },
+                        "login_agreement_revision": {
+                          "type": "string"
+                        },
+                        "login_agreement_documents": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "content_md": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "title",
+                              "content_md"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "turnstile_enabled": {
+                          "type": "boolean"
+                        },
+                        "turnstile_site_key": {
+                          "type": "string"
+                        },
+                        "tencent_captcha_enabled": {
+                          "type": "boolean"
+                        },
+                        "tencent_captcha_app_id": {
+                          "type": "string"
+                        },
+                        "tencent_captcha_region": {
+                          "type": "string"
+                        },
+                        "aliyun_captcha_enabled": {
+                          "type": "boolean"
+                        },
+                        "aliyun_captcha_scene_id": {
+                          "type": "string"
+                        },
+                        "aliyun_captcha_prefix": {
+                          "type": "string"
+                        },
+                        "aliyun_captcha_region": {
+                          "type": "string"
+                        },
+                        "site_name": {
+                          "type": "string"
+                        },
+                        "site_logo": {
+                          "type": "string"
+                        },
+                        "site_subtitle": {
+                          "type": "string"
+                        },
+                        "api_base_url": {
+                          "type": "string"
+                        },
+                        "contact_info": {
+                          "type": "string"
+                        },
+                        "doc_url": {
+                          "type": "string"
+                        },
+                        "home_content": {
+                          "type": "string"
+                        },
+                        "compact_home_enabled": {
+                          "type": "boolean"
+                        },
+                        "hide_ccs_import_button": {
+                          "type": "boolean"
+                        },
+                        "purchase_subscription_enabled": {
+                          "type": "boolean"
+                        },
+                        "purchase_subscription_url": {
+                          "type": "string"
+                        },
+                        "table_default_page_size": {
+                          "type": "integer"
+                        },
+                        "table_page_size_options": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer"
+                          }
+                        },
+                        "custom_menu_items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "icon_svg": {
+                                "type": "string"
+                              },
+                              "url": {
+                                "type": "string"
+                              },
+                              "page_slug": {
+                                "type": "string"
+                              },
+                              "visibility": {
+                                "type": "string"
+                              },
+                              "sort_order": {
+                                "type": "integer"
+                              },
+                              "hide_open_button": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "label",
+                              "icon_svg",
+                              "url",
+                              "visibility",
+                              "sort_order"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "description": "Admin-only entries filtered out. page_slug and hide_open_button are omitted when empty/false; visibility is not constrained beyond the actual string DTO."
+                        },
+                        "custom_endpoints": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "endpoint": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "endpoint",
+                              "description"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "description": "Required field. Empty/invalid stored JSON becomes []; stored JSON null remains null in the current handler."
+                        },
+                        "dingtalk_oauth_enabled": {
+                          "type": "boolean"
+                        },
+                        "linuxdo_oauth_enabled": {
+                          "type": "boolean"
+                        },
+                        "wechat_oauth_enabled": {
+                          "type": "boolean"
+                        },
+                        "wechat_oauth_open_enabled": {
+                          "type": "boolean"
+                        },
+                        "wechat_oauth_mp_enabled": {
+                          "type": "boolean"
+                        },
+                        "wechat_oauth_mobile_enabled": {
+                          "type": "boolean"
+                        },
+                        "oidc_oauth_enabled": {
+                          "type": "boolean"
+                        },
+                        "oidc_oauth_provider_name": {
+                          "type": "string"
+                        },
+                        "github_oauth_enabled": {
+                          "type": "boolean"
+                        },
+                        "google_oauth_enabled": {
+                          "type": "boolean"
+                        },
+                        "backend_mode_enabled": {
+                          "type": "boolean"
+                        },
+                        "payment_enabled": {
+                          "type": "boolean"
+                        },
+                        "payment_balance_disabled": {
+                          "type": "boolean"
+                        },
+                        "version": {
+                          "type": "string"
+                        },
+                        "server_timezone": {
+                          "type": "string"
+                        },
+                        "server_utc_offset": {
+                          "type": "string"
+                        },
+                        "balance_low_notify_enabled": {
+                          "type": "boolean"
+                        },
+                        "account_quota_notify_enabled": {
+                          "type": "boolean"
+                        },
+                        "balance_low_notify_threshold": {
+                          "type": "number",
+                          "description": "JSON number; fractional values are retained."
+                        },
+                        "balance_low_notify_recharge_url": {
+                          "type": "string"
+                        },
+                        "channel_monitor_enabled": {
+                          "type": "boolean"
+                        },
+                        "channel_monitor_mode": {
+                          "type": "string"
+                        },
+                        "channel_monitor_default_interval_seconds": {
+                          "type": "integer"
+                        },
+                        "channel_monitor_hide_throughput": {
+                          "type": "boolean"
+                        },
+                        "channel_monitor_show_quota": {
+                          "type": "boolean"
+                        },
+                        "channel_monitor_hide_user_ranking": {
+                          "type": "boolean"
+                        },
+                        "available_channels_enabled": {
+                          "type": "boolean"
+                        },
+                        "subscription_enabled": {
+                          "type": "boolean"
+                        },
+                        "model_plaza_enabled": {
+                          "type": "boolean"
+                        },
+                        "model_plaza_require_auth": {
+                          "type": "boolean"
+                        },
+                        "plugin_management_enabled": {
+                          "type": "boolean"
+                        },
+                        "affiliate_enabled": {
+                          "type": "boolean"
+                        },
+                        "risk_control_enabled": {
+                          "type": "boolean"
+                        },
+                        "allow_user_view_error_requests": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "registration_enabled",
+                        "email_verify_enabled",
+                        "force_email_on_third_party_signup",
+                        "registration_email_suffix_whitelist",
+                        "registration_email_domain_quota_enabled",
+                        "promo_code_enabled",
+                        "password_reset_enabled",
+                        "invitation_code_enabled",
+                        "totp_enabled",
+                        "passkey_enabled",
+                        "login_agreement_enabled",
+                        "login_agreement_mode",
+                        "login_agreement_updated_at",
+                        "login_agreement_revision",
+                        "login_agreement_documents",
+                        "turnstile_enabled",
+                        "turnstile_site_key",
+                        "tencent_captcha_enabled",
+                        "tencent_captcha_app_id",
+                        "tencent_captcha_region",
+                        "aliyun_captcha_enabled",
+                        "aliyun_captcha_scene_id",
+                        "aliyun_captcha_prefix",
+                        "aliyun_captcha_region",
+                        "site_name",
+                        "site_logo",
+                        "site_subtitle",
+                        "api_base_url",
+                        "contact_info",
+                        "doc_url",
+                        "home_content",
+                        "compact_home_enabled",
+                        "hide_ccs_import_button",
+                        "purchase_subscription_enabled",
+                        "purchase_subscription_url",
+                        "table_default_page_size",
+                        "table_page_size_options",
+                        "custom_menu_items",
+                        "custom_endpoints",
+                        "dingtalk_oauth_enabled",
+                        "linuxdo_oauth_enabled",
+                        "wechat_oauth_enabled",
+                        "wechat_oauth_open_enabled",
+                        "wechat_oauth_mp_enabled",
+                        "wechat_oauth_mobile_enabled",
+                        "oidc_oauth_enabled",
+                        "oidc_oauth_provider_name",
+                        "github_oauth_enabled",
+                        "google_oauth_enabled",
+                        "backend_mode_enabled",
+                        "payment_enabled",
+                        "payment_balance_disabled",
+                        "version",
+                        "server_timezone",
+                        "server_utc_offset",
+                        "balance_low_notify_enabled",
+                        "account_quota_notify_enabled",
+                        "balance_low_notify_threshold",
+                        "balance_low_notify_recharge_url",
+                        "channel_monitor_enabled",
+                        "channel_monitor_mode",
+                        "channel_monitor_default_interval_seconds",
+                        "channel_monitor_hide_throughput",
+                        "channel_monitor_show_quota",
+                        "channel_monitor_hide_user_ranking",
+                        "available_channels_enabled",
+                        "subscription_enabled",
+                        "model_plaza_enabled",
+                        "model_plaza_require_auth",
+                        "plugin_management_enabled",
+                        "affiliate_enabled",
+                        "risk_control_enabled",
+                        "allow_user_view_error_requests"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Settings repository failure; generic error conceals the underlying cause.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 500
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "internal error"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/system/version": {
+      "get": {
+        "operationId": "getAdminSystemVersion",
+        "summary": "Current version for the administrator frontend.",
+        "description": "No path/query parameters or request body are consumed; force is not a parameter of this endpoint. Requires admin JWT or x-api-key. An upgrade-shaped request (Upgrade: websocket and Connection containing upgrade) may carry jwt.<token> in Sec-WebSocket-Protocol; this middleware alternative has precedence over x-api-key, which has precedence over Authorization. Invalid higher-priority credentials never fall back. The handler still returns ordinary JSON 200, never 101/SSE/WebSocket frames. Active JWT user, token version, optional session binding and admin role are checked; API key maps to GetFirstAdmin. Compliance acknowledgement is required and configured panel limits may apply. Update lookup failures fall back to current version, not an invented handler error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current version; updater warnings and other release fields are not returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated JWT user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "FORBIDDEN"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Admin key settings, user lookup, first admin or compliance storage failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "INTERNAL_ERROR"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -120,6 +821,11 @@
         "type": "apiKey",
         "in": "header",
         "name": "x-goog-api-key"
+      },
+      "AdminUpgradeJWT": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Sec-WebSocket-Protocol"
       }
     }
   }

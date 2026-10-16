@@ -112,7 +112,7 @@ func openAPIRouter(t *testing.T, bootstrap bool, executeCommon bool) (*gin.Engin
 		if len(authChain) > 0 {
 			entry.Authentication = strings.Join(authChain, " -> ")
 		}
-		if !bootstrap && openAPICommon[key] && entry.Authentication == "handler-policy-unreviewed" {
+		if !bootstrap && (openAPICommon[key] || key == "GET /api/v1/settings/public") && entry.Authentication == "handler-policy-unreviewed" {
 			entry.Authentication = "public"
 		}
 		observed[key] = entry
@@ -126,6 +126,15 @@ func openAPIRouter(t *testing.T, bootstrap bool, executeCommon bool) (*gin.Engin
 	cfg.Gateway.MaxBodySize = 1024 * 1024
 	cfg.Gateway.TextMaxBodySize = 1024 * 1024
 	cfg.Pricing.DataDir = t.TempDir()
+	h := openAPIHandlers(t)
+	settings := service.NewSettingService(openAPISettings{}, cfg)
+	server.SetupRouter(r, h, middleware.JWTAuthMiddleware(openAPIJWT), middleware.OptionalJWTAuthMiddleware(openAPIOptionalJWT), middleware.AdminAuthMiddleware(openAPIAdmin), middleware.APIKeyAuthMiddleware(openAPIKey), middleware.AuditLogMiddleware(openAPIAudit), middleware.StepUpAuthMiddleware(openAPIStepUp), nil, nil, nil, settings, nil, cfg, nil)
+	t.Cleanup(func() { middleware.SetIngressRejectRecorder(nil) })
+	return r, observed
+}
+
+func openAPIHandlers(t *testing.T) *handler.Handlers {
+	t.Helper()
 	h := &handler.Handlers{}
 	// Zero-valued handler receivers are sufficient to REGISTER method values.
 	// Recursion stops at this explicit aggregate; services are never constructed.
@@ -140,10 +149,7 @@ func openAPIRouter(t *testing.T, bootstrap bool, executeCommon bool) (*gin.Engin
 	}
 	fill(reflect.ValueOf(h).Elem())
 	fill(reflect.ValueOf(h.Admin).Elem())
-	settings := service.NewSettingService(openAPISettings{}, cfg)
-	server.SetupRouter(r, h, middleware.JWTAuthMiddleware(openAPIJWT), middleware.OptionalJWTAuthMiddleware(openAPIOptionalJWT), middleware.AdminAuthMiddleware(openAPIAdmin), middleware.APIKeyAuthMiddleware(openAPIKey), middleware.AuditLogMiddleware(openAPIAudit), middleware.StepUpAuthMiddleware(openAPIStepUp), nil, nil, nil, settings, nil, cfg, nil)
-	t.Cleanup(func() { middleware.SetIngressRejectRecorder(nil) })
-	return r, observed
+	return h
 }
 
 func openAPICollect(t *testing.T, bootstrap bool) []openAPIRoute {
@@ -187,6 +193,9 @@ func openAPIRead(t *testing.T, name string, v any) {
 
 // Both schema constants and response values must retain exact JSON numbers.
 func openAPIDecode(data []byte, v any) error {
+	if err := openAPICheckRawJSON(data, v); err != nil {
+		return err
+	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
 	decoder.DisallowUnknownFields()

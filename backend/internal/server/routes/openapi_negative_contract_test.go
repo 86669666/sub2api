@@ -297,7 +297,7 @@ func TestOpenAPIClosedSchemaProfileBoundaries(t *testing.T) {
 		{"open object", `{"type":"object","properties":{"x":{"type":"string"}},"required":["x"],"additionalProperties":true}`, "objects must be closed"},
 		{"implicit open object", `{"type":"object","properties":{"x":{"type":"string"}},"required":["x"]}`, "objects must be closed"},
 		{"nested open object", `{"type":"object","properties":{"x":{"type":"object","properties":{"y":{"type":"string"}},"required":["y"]}},"required":["x"],"additionalProperties":false}`, "objects must be closed"},
-		{"unsupported array", `{"type":"array"}`, "unsupported A0 schema type"},
+		{"array without items", `{"type":"array"}`, "array requires one item schema"},
 		{"unsupported ref", `{"type":"string","$ref":"#/components/schemas/Other"}`, "unsupported A0 schema keyword"},
 		{"object keyword on scalar", `{"type":"string","additionalProperties":false}`, "object keyword on string"},
 		{"unknown required property", `{"type":"object","properties":{"x":{"type":"string"}},"required":["y"],"additionalProperties":false}`, "unknown required property"},

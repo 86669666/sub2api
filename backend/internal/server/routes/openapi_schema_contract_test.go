@@ -43,8 +43,14 @@ type openAPIParameter struct {
 	Required bool           `json:"required"`
 	Schema   map[string]any `json:"schema"`
 }
+type openAPIHeader struct {
+	Description string         `json:"description"`
+	Required    bool           `json:"required"`
+	Schema      map[string]any `json:"schema"`
+}
 type openAPIResponse struct {
-	Description string `json:"description"`
+	Headers     map[string]openAPIHeader `json:"headers,omitempty"`
+	Description string                   `json:"description"`
 	Content     map[string]struct {
 		Schema map[string]any `json:"schema"`
 	} `json:"content,omitempty"`
@@ -71,7 +77,7 @@ func openAPIExpectedSecurity(auth string) ([]map[string][]string, error) {
 	case "optional-jwt":
 		return []map[string][]string{{}, {"BearerAuth": {}}}, nil
 	case "admin-jwt-or-key":
-		return []map[string][]string{{"BearerAuth": {}}, {"AdminAPIKey": {}}}, nil
+		return []map[string][]string{{"BearerAuth": {}}, {"AdminAPIKey": {}}, {"AdminUpgradeJWT": {}}}, nil
 	case "gateway-key", "google-gateway-key":
 		return []map[string][]string{{"BearerAuth": {}}, {"APIKey": {}}, {"GoogleAPIKey": {}}}, nil
 	default:
@@ -88,7 +94,7 @@ func openAPISecurityKey(requirements []map[string][]string) string {
 	return strings.Join(alternatives, "|")
 }
 func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) error {
-	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0 partial" || doc.Profile != "a0-closed-object-v1" {
+	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1 partial" || doc.Profile != "a1-closed-object-array-v2" {
 		return fmt.Errorf("invalid OAS/version/scope/profile metadata")
 	}
 	if len(doc.Paths) == 0 {
@@ -173,6 +179,11 @@ func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) e
 				if !regexp.MustCompile(`^[1-5][0-9][0-9]$`).MatchString(status) || response.Description == "" {
 					return fmt.Errorf("invalid status/description: %s %s", key, status)
 				}
+				for name, header := range response.Headers {
+					if name != "Retry-After" || status != "429" || header.Description == "" || !header.Required || len(header.Schema) != 1 || header.Schema["type"] != "string" {
+						return fmt.Errorf("unsupported response header contract")
+					}
+				}
 				for media, body := range response.Content {
 					if media != "application/json" {
 						return fmt.Errorf("unsupported A0 response media type: %s", media)
@@ -192,10 +203,11 @@ func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) e
 	}
 	// Scheme definitions are machine-checked, not just names that can be relabeled.
 	expectedSchemes := map[string]map[string]any{
-		"BearerAuth":   {"type": "http", "scheme": "bearer"},
-		"AdminAPIKey":  {"type": "apiKey", "in": "header", "name": "x-api-key"},
-		"APIKey":       {"type": "apiKey", "in": "header", "name": "x-api-key"},
-		"GoogleAPIKey": {"type": "apiKey", "in": "header", "name": "x-goog-api-key"},
+		"BearerAuth":      {"type": "http", "scheme": "bearer"},
+		"AdminUpgradeJWT": {"type": "apiKey", "in": "header", "name": "Sec-WebSocket-Protocol"},
+		"AdminAPIKey":     {"type": "apiKey", "in": "header", "name": "x-api-key"},
+		"APIKey":          {"type": "apiKey", "in": "header", "name": "x-api-key"},
+		"GoogleAPIKey":    {"type": "apiKey", "in": "header", "name": "x-goog-api-key"},
 	}
 	if !reflect.DeepEqual(doc.Components.SecuritySchemes, expectedSchemes) {
 		return fmt.Errorf("security scheme definition drift")
@@ -203,24 +215,48 @@ func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) e
 	return nil
 }
 
-// A deliberately small, fail-closed JSON Schema profile for the A0 operations.
+// A deliberately small, fail-closed JSON Schema profile for A0+A1.
+// A1 adds homogeneous arrays, array-or-null and exact numbers, not general unions.
 // This is NOT a general OAS/JSON Schema validator. Unsupported keywords fail the
 // gate instead of silently passing: extend it with tests or adopt a reviewed
 // validator before expanding the schema dialect in later slices.
+func openAPISchemaType(schema map[string]any) (string, bool, error) {
+	if typ, ok := schema["type"].(string); ok {
+		return typ, false, nil
+	}
+	if types, ok := schema["type"].([]any); ok {
+		if len(types) == 2 && ((types[0] == "array" && types[1] == "null") || (types[0] == "null" && types[1] == "array")) {
+			return "array", true, nil
+		}
+		return "", false, fmt.Errorf("unsupported type union; only array-or-null is supported")
+	}
+	return "", false, fmt.Errorf("schema requires an explicit type")
+}
+
 func openAPICheckSchema(schema map[string]any) error {
 	if len(schema) == 0 {
 		return fmt.Errorf("empty schema is not coverage")
 	}
 	for key := range schema {
 		switch key {
-		case "type", "properties", "required", "additionalProperties", "const", "description":
+		case "type", "properties", "required", "additionalProperties", "const", "description", "items":
 		default:
 			return fmt.Errorf("unsupported A0 schema keyword: %s", key)
 		}
 	}
-	typ, ok := schema["type"].(string)
-	if !ok {
-		return fmt.Errorf("schema requires an explicit type")
+	typ, _, err := openAPISchemaType(schema)
+	if err != nil {
+		return err
+	}
+	if d, exists := schema["description"]; exists {
+		if _, ok := d.(string); !ok {
+			return fmt.Errorf("description must be a string")
+		}
+	}
+	if typ != "array" {
+		if _, exists := schema["items"]; exists {
+			return fmt.Errorf("array keyword on %s", typ)
+		}
 	}
 	switch typ {
 	case "object":
@@ -255,10 +291,19 @@ func openAPICheckSchema(schema map[string]any) error {
 				return err
 			}
 		}
-	case "string", "boolean", "integer":
+	case "array", "string", "boolean", "integer", "number":
 		for _, key := range []string{"properties", "required", "additionalProperties"} {
 			if _, ok := schema[key]; ok {
 				return fmt.Errorf("object keyword on %s", typ)
+			}
+		}
+		if typ == "array" {
+			items, ok := schema["items"].(map[string]any)
+			if !ok {
+				return fmt.Errorf("array requires one item schema")
+			}
+			if err := openAPICheckSchema(items); err != nil {
+				return fmt.Errorf("items: %w", err)
 			}
 		}
 	default:
@@ -314,6 +359,17 @@ func openAPIEqualValue(a, b any) bool {
 		}
 		y, err := openAPIExactNumber(b)
 		return err == nil && x.Cmp(y) == 0
+	case []any:
+		other, ok := b.([]any)
+		if !ok || len(a) != len(other) {
+			return false
+		}
+		for i := range a {
+			if !openAPIEqualValue(a[i], other[i]) {
+				return false
+			}
+		}
+		return true
 	case map[string]any:
 		other, ok := b.(map[string]any)
 		if !ok || len(a) != len(other) {
@@ -332,7 +388,17 @@ func openAPIEqualValue(a, b any) bool {
 }
 
 func openAPIValidateValue(schema map[string]any, value any) error {
-	switch schema["type"] {
+	typ, nullable, err := openAPISchemaType(schema)
+	if err != nil {
+		return err
+	}
+	if value == nil && nullable {
+		if constant, ok := schema["const"]; ok && constant != nil {
+			return fmt.Errorf("constant mismatch")
+		}
+		return nil
+	}
+	switch typ {
 	case "object":
 		object, ok := value.(map[string]any)
 		if !ok {
@@ -376,6 +442,24 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 		if _, ok := value.(bool); !ok {
 			return fmt.Errorf("expected boolean")
 		}
+	case "array":
+		items, ok := schema["items"].(map[string]any)
+		if !ok {
+			return fmt.Errorf("unvalidated array items")
+		}
+		values, ok := value.([]any)
+		if !ok {
+			return fmt.Errorf("expected array")
+		}
+		for i, v := range values {
+			if err := openAPIValidateValue(items, v); err != nil {
+				return fmt.Errorf("item %d: %w", i, err)
+			}
+		}
+	case "number":
+		if _, err := openAPIExactNumber(value); err != nil {
+			return err
+		}
 	case "integer":
 		n, err := openAPIExactNumber(value)
 		if err != nil {
@@ -396,6 +480,26 @@ func openAPIValidateResponse(op openAPIOperation, rec *httptest.ResponseRecorder
 	response, ok := op.Responses[fmt.Sprint(rec.Code)]
 	if !ok {
 		return fmt.Errorf("undocumented HTTP status %d", rec.Code)
+	}
+	for name, header := range response.Headers {
+		value := rec.Header().Get(name)
+		if header.Required && value == "" {
+			return fmt.Errorf("missing response header %s", name)
+		}
+		if name == "Retry-After" {
+			if len(rec.Header().Values(name)) != 1 || value == "" {
+				return fmt.Errorf("invalid Retry-After seconds")
+			}
+			for _, digit := range value {
+				if digit < '0' || digit > '9' {
+					return fmt.Errorf("invalid Retry-After seconds")
+				}
+			}
+			n, err := strconv.ParseInt(value, 10, 64)
+			if err != nil || n <= 0 {
+				return fmt.Errorf("invalid Retry-After seconds")
+			}
+		}
 	}
 	if len(response.Content) == 0 {
 		if rec.Body.Len() != 0 || rec.Header().Get("Content-Type") != "" {
@@ -441,7 +545,8 @@ func TestOpenAPIResponses(t *testing.T) {
 			t.Run(method+" "+path, func(t *testing.T) {
 				key := strings.ToUpper(method) + " " + path
 				if !openAPICommon[key] {
-					t.Fatalf("new operation needs an isolated executable response fixture: %s", key)
+					openAPIA1VerifyResponses(t, path, op)
+					return
 				}
 				body := ""
 				if method == "post" {
