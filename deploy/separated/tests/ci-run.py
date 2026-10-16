@@ -196,7 +196,7 @@ try:
     node_version=run(['node','--version']).stdout.strip()
     assert re.fullmatch(r'v24\.\d+\.\d+',node_version),'expected explicit CI Node24'
     receipt['node_version']=node_version
-    run(['node','--test','deploy/separated/tests/cache-contract.test.mjs','deploy/separated/tests/edge502.test.mjs'],timeout=30)
+    run(['node','--test','deploy/separated/tests/cache-contract.test.mjs','deploy/separated/tests/edge502.test.mjs','deploy/separated/tests/visual-contract.test.mjs'],timeout=30)
     run([sys.executable,'-B','-m','unittest','discover','-s','deploy/separated/tests','-p','test_*.py','-v'], extra_env={'GITHUB_ACTIONS':'true','RUNNER_ENVIRONMENT':'github-hosted'},timeout=240)
     receipt['candidate']=sha;receipt['runner']={'os':os.uname().sysname,'arch':os.uname().machine,'github_run_id':os.environ.get('GITHUB_RUN_ID')}
     assert run(['docker','context','show']).stdout.strip()=='default','no alternate Docker context permitted'
@@ -297,6 +297,16 @@ try:
     run(['docker','start','-a',browser])
     browser_state=json.loads(run(['docker','inspect',container_ids[browser]]).stdout)[0]['State']
     assert browser_state['Running'] is False and browser_state['ExitCode']==0,'actual browser failed'
+    visual=json.loads((out/'visual.json').read_text())
+    assert visual['outcome']=='passed' and visual['candidate']==sha,'visual acceptance must bind actual checkout SHA'
+    assert len(visual['charts'])==18 and len(visual['tables'])>=40 and len(visual['pages'])>=51
+    assert visual['screenshots']
+    for item in visual['screenshots']:
+        screenshot=(out/item['file']).resolve()
+        assert screenshot.is_relative_to((out/'visual').resolve()) and screenshot.suffix=='.png'
+        assert hashlib.sha256(screenshot.read_bytes()).hexdigest()==item['sha256']
+    assert not visual['errors'],'visual page errors cannot be accepted'
+    receipt['visual']={'outcome':visual['outcome'],'candidate':sha,'charts':len(visual['charts']),'tables':len(visual['tables']),'pages':len(visual['pages']),'screenshots':len(visual['screenshots'])}
     relay_stage('after_browser_before_fault_injection')
     # Browser is a separate control actor; establish a new checked control epoch.
     last_control=None

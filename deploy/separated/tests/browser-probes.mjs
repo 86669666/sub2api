@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { runVisualAcceptance } from './visual-probes.mjs'
 import { writeFile } from 'node:fs/promises'
 import { pathToFileURL } from 'node:url'
 const panel='http://127.0.0.1:8088', gateway='http://127.0.0.1:8089', mock='http://127.0.0.1:8090'
@@ -34,7 +35,7 @@ export function createControlClient(url, trace, fetcher=fetch, timeoutMs=5000) {
    if(last)assert.ok(ack.sequence>=last.sequence)
    assert.ok(Number.isInteger(ack.status) && ack.status>=200 && ack.status<=599)
    if(value.status!==undefined || last)assert.equal(ack.status,value.status??last.status)
-   for(const key of ['setup','setupHang','wsRedirect'])if(value[key]!==undefined)assert.deepEqual(ack[key],value[key])
+   for(const key of ['setup','setupHang','wsRedirect','visual'])if(value[key]!==undefined)assert.deepEqual(ack[key],value[key])
    receipt.ack=ack;last=ack;return ack
   } catch(error){failed=true;receipt.error=String(error);throw error}
  }
@@ -252,11 +253,15 @@ try {
  rows=await observed();const appUsage=rows.find(r=>r.url.startsWith('/v1/usage'));assert.ok(appUsage)
  assert.equal(appUsage.headers.authorization,'Bearer API-KEY-SENTINEL');assert.equal(appUsage.headers.cookie,undefined)
  evidence.tests.push('real App gates true/invalid status, retry restores real KeyUsage; tenth call has no panel credentials')
+ // Preserve the original D0 observations before the additional visual phase.
+ evidence.final_observations=await observed()
+ evidence.visual=await runVisualAcceptance(browser,{panel,gateway,control,observed,contract})
+ assert.equal(evidence.visual.outcome,'passed')
  evidence.outcome='passed'
 } catch(error) {
  evidence.error={message:error.message,stack:error.stack};throw error
 } finally {
- try {evidence.final_observations=await observed()}
+ try {if(!evidence.final_observations)evidence.final_observations=await observed()}
  catch(error){evidence.observation_error=String(error)}
  // Neither supplemental evidence nor browser cleanup may replace the primary failure.
  try {await writeFile('/evidence/browser.json',JSON.stringify(evidence,null,2))}
