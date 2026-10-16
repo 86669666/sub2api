@@ -25,9 +25,10 @@ func openAPIA2Cases(t *testing.T, method, path string) []openAPIA2Case {
 	token := openAPIA1Token(t, func(c *service.JWTClaims) { c.Role = service.RoleUser }, openAPIA1SigningKey)
 	bearer := "Bearer " + token
 	validBody := ""
-	if method == "post" {
+	switch method {
+	case "post":
 		validBody = `{"name":"synthetic","custom_key":"` + openAPIA2CreateKey + `"}`
-	} else if method == "put" {
+	case "put":
 		validBody = `{"name":"updated"}`
 	}
 	cases := []openAPIA2Case{
