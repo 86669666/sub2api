@@ -42,7 +42,22 @@ func TestParseSSEUsage_MessageStart(t *testing.T) {
 	require.Equal(t, 100, usage.InputTokens)
 	require.Equal(t, 50, usage.CacheCreationInputTokens)
 	require.Equal(t, 200, usage.CacheReadInputTokens)
-	require.Equal(t, 0, usage.OutputTokens, "message_start 不应设置 output_tokens")
+	require.Equal(t, 0, usage.OutputTokens, "缺省或零值 output_tokens 不应写入")
+}
+
+func TestParseSSEUsage_MessageStartKeepsObservedOutputTokens(t *testing.T) {
+	svc := newMinimalGatewayService()
+	usage := &ClaudeUsage{}
+
+	svc.parseSSEUsage(`{"type":"message_start","message":{"usage":{"input_tokens":10,"output_tokens":8}}}`, usage)
+	require.Equal(t, 10, usage.InputTokens)
+	require.Equal(t, 8, usage.OutputTokens, "流在 message_delta 前结束时必须保留已观测输出")
+
+	svc.parseSSEUsage(`{"type":"message_start","message":{"usage":{"input_tokens":10,"output_tokens":0}}}`, usage)
+	require.Equal(t, 8, usage.OutputTokens, "零值不得覆盖已观测输出")
+
+	svc.parseSSEUsage(`{"type":"message_delta","usage":{"output_tokens":20}}`, usage)
+	require.Equal(t, 20, usage.OutputTokens, "后续 message_delta 的累计输出仍应覆盖")
 }
 
 func TestParseSSEUsage_MessageDelta(t *testing.T) {
