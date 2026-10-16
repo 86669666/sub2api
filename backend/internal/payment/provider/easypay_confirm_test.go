@@ -119,7 +119,7 @@ func TestEasyPayConfirmNotification(t *testing.T) {
 			body:        `<html>502 Bad Gateway</html>`,
 			status:      http.StatusBadGateway,
 			notifyTrade: "2026101600001",
-			wantErr:     "parse query",
+			wantErr:     "HTTP status 502",
 		},
 	}
 	for _, tt := range tests {

@@ -341,7 +341,7 @@ func (e *EasyPay) queryOrder(ctx context.Context, outTradeNo string) (*easyPayQu
 	for k, v := range params {
 		query.Set(k, v)
 	}
-	body, err := e.post(ctx, e.apiBase()+"/api.php?"+query.Encode(), params)
+	body, statusCode, err := e.postRaw(ctx, e.apiBase()+"/api.php?"+query.Encode(), params)
 	if err != nil {
 		// The request URL carries the merchant key; never let it reach logs
 		// or audit records through *url.Error.
@@ -350,6 +350,11 @@ func (e *EasyPay) queryOrder(ctx context.Context, outTradeNo string) (*easyPayQu
 			err = urlErr.Err
 		}
 		return nil, fmt.Errorf("easypay query: %w", err)
+	}
+	if statusCode < http.StatusOK || statusCode >= http.StatusMultipleChoices {
+		// Do not trust a paid-looking body from a failed HTTP query, and do
+		// not expose the request URL containing the merchant key.
+		return nil, fmt.Errorf("easypay query: HTTP status %d", statusCode)
 	}
 	// Scalars are decoded leniently: PHP deployments commonly serialize
 	// integer columns as strings ("status":"1").
@@ -422,7 +427,9 @@ func (e *EasyPay) ConfirmNotification(ctx context.Context, n *payment.PaymentNot
 		return fmt.Errorf("easypay confirm: upstream reports order %s as not paid", n.OrderID)
 	}
 	queriedAmount, err := strconv.ParseFloat(result.money, 64)
-	if err != nil || math.Abs(queriedAmount-n.Amount) > easypayAmountTolerance {
+	if err != nil || math.IsNaN(queriedAmount) || math.IsInf(queriedAmount, 0) || queriedAmount <= 0 ||
+		math.IsNaN(n.Amount) || math.IsInf(n.Amount, 0) || n.Amount <= 0 ||
+		math.Abs(queriedAmount-n.Amount) > easypayAmountTolerance {
 		return fmt.Errorf("easypay confirm: amount mismatch: notified %v, upstream %q", n.Amount, result.money)
 	}
 	if result.tradeNo != "" {
