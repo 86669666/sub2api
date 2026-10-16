@@ -17,7 +17,7 @@ func TestOpenAPIA1FiniteProfile(t *testing.T) {
 		{"items on scalar", `{"type":"string","items":{"type":"string"}}`, `"x"`, "array keyword"},
 		{"object keyword on array", `{"type":"array","items":{"type":"string"},"required":[]}`, `[]`, "object keyword"},
 		{"nullable missing items", `{"type":["array","null"]}`, `null`, "array requires"},
-		{"arbitrary union rejected", `{"type":["string","null"]}`, `null`, "unsupported type union"},
+		{"arbitrary union rejected", `{"type":["string","boolean"]}`, `null`, "unsupported type union"},
 		{"duplicate union rejected", `{"type":["array","array"]}`, `[]`, "unsupported type union"},
 		{"unknown union type rejected", `{"type":["array",{}],"items":{"type":"string"}}`, `[]`, "unsupported type union"},
 		{"nullable keyword rejected", `{"type":"array","items":{"type":"string"},"nullable":true}`, `null`, "unsupported A0 schema keyword"},

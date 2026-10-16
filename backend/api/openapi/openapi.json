@@ -1,13 +1,13 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Sub2API normal-mode HTTP contract — A0+A1 subset",
-    "version": "0.2.0",
+    "title": "Sub2API normal-mode HTTP contract — A0+A1+A2 subset",
+    "version": "0.3.0",
     "description": "Partial executable contract. Other routes are individually tracked in route-inventory.json. Bootstrap setup and provider protocols are not covered by this document."
   },
-  "x-contract-scope": "normal-mode A0+A1 partial",
-  "x-source-baseline": "322aa2d1c9e61ec078a81d65cd65fe0a9236b497",
-  "x-schema-validation-profile": "a1-closed-object-array-v2",
+  "x-contract-scope": "normal-mode A0+A1+A2 partial",
+  "x-source-baseline": "5fa7524945dfcbfac8906621a327fe3e511d3195",
+  "x-schema-validation-profile": "a2-typed-map-request-v3",
   "paths": {
     "/health": {
       "get": {
@@ -786,6 +786,4815 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/keys": {
+      "get": {
+        "operationId": "listUserAPIKeys",
+        "summary": "List current user API keys",
+        "description": "User self-service JWT session endpoint. Production JWT validates signature, expiry, active user, token version and configured session binding. Backend mode denies non-admin users; panel user rate limit applies. Admin compliance acknowledgement is NOT registered on these routes. No SSE/streaming. Ownership enforced by handler/service.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful production JSON response (including creation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "user_id": {
+                                "type": "integer"
+                              },
+                              "key": {
+                                "type": "string",
+                                "description": "Full owner-visible API key credential, returned on list/get/create/update; not masked or create-only. Treat as secret. Synthetic fixtures only."
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "group_id": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "ip_whitelist": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "ip_blacklist": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "last_used_at": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "last_used_ip": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "quota": {
+                                "type": "number"
+                              },
+                              "quota_used": {
+                                "type": "number"
+                              },
+                              "expires_at": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "current_concurrency": {
+                                "type": "integer"
+                              },
+                              "rate_limit_5h": {
+                                "type": "number"
+                              },
+                              "rate_limit_1d": {
+                                "type": "number"
+                              },
+                              "rate_limit_7d": {
+                                "type": "number"
+                              },
+                              "usage_5h": {
+                                "type": "number"
+                              },
+                              "usage_1d": {
+                                "type": "number"
+                              },
+                              "usage_7d": {
+                                "type": "number"
+                              },
+                              "window_5h_start": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "window_1d_start": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "window_7d_start": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "reset_5h_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "reset_1d_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "reset_7d_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "user": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "integer"
+                                  },
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "username": {
+                                    "type": "string"
+                                  },
+                                  "role": {
+                                    "type": "string"
+                                  },
+                                  "balance": {
+                                    "type": "number"
+                                  },
+                                  "frozen_balance": {
+                                    "type": "number"
+                                  },
+                                  "concurrency": {
+                                    "type": "integer"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "allowed_groups": {
+                                    "type": [
+                                      "array",
+                                      "null"
+                                    ],
+                                    "items": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "last_active_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "created_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updated_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "deleted_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "balance_notify_enabled": {
+                                    "type": "boolean"
+                                  },
+                                  "balance_notify_threshold_type": {
+                                    "type": "string"
+                                  },
+                                  "balance_notify_threshold": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "balance_notify_extra_emails": {
+                                    "type": [
+                                      "array",
+                                      "null"
+                                    ],
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "email": {
+                                          "type": "string"
+                                        },
+                                        "disabled": {
+                                          "type": "boolean"
+                                        },
+                                        "verified": {
+                                          "type": "boolean"
+                                        }
+                                      },
+                                      "required": [
+                                        "email",
+                                        "disabled",
+                                        "verified"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "total_recharged": {
+                                    "type": "number"
+                                  },
+                                  "rpm_limit": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "email",
+                                  "username",
+                                  "role",
+                                  "balance",
+                                  "frozen_balance",
+                                  "concurrency",
+                                  "status",
+                                  "allowed_groups",
+                                  "created_at",
+                                  "updated_at",
+                                  "balance_notify_enabled",
+                                  "balance_notify_threshold_type",
+                                  "balance_notify_threshold",
+                                  "balance_notify_extra_emails",
+                                  "total_recharged",
+                                  "rpm_limit"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "group": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "integer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "platform": {
+                                    "type": "string"
+                                  },
+                                  "rate_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "is_exclusive": {
+                                    "type": "boolean"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "subscription_type": {
+                                    "type": "string"
+                                  },
+                                  "daily_limit_usd": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "weekly_limit_usd": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "monthly_limit_usd": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "long_context_pricing_enabled": {
+                                    "type": "boolean"
+                                  },
+                                  "allow_image_generation": {
+                                    "type": "boolean"
+                                  },
+                                  "allow_batch_image_generation": {
+                                    "type": "boolean"
+                                  },
+                                  "image_rate_independent": {
+                                    "type": "boolean"
+                                  },
+                                  "image_rate_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "batch_image_discount_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "batch_image_hold_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "video_rate_independent": {
+                                    "type": "boolean"
+                                  },
+                                  "video_rate_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "peak_rate_enabled": {
+                                    "type": "boolean"
+                                  },
+                                  "peak_start": {
+                                    "type": "string"
+                                  },
+                                  "peak_end": {
+                                    "type": "string"
+                                  },
+                                  "peak_rate_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "image_price_1k": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "image_price_2k": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "image_price_4k": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "video_price_480p": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "video_price_720p": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "video_price_1080p": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "video_model_prices": {
+                                    "type": "object",
+                                    "properties": {},
+                                    "required": [],
+                                    "additionalProperties": {
+                                      "type": "object",
+                                      "properties": {},
+                                      "required": [],
+                                      "additionalProperties": {
+                                        "type": "number"
+                                      }
+                                    }
+                                  },
+                                  "web_search_price_per_call": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "search_price_per_1k": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "audio_realtime_price_per_min": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "audio_tts_price_per_million_chars": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "audio_stt_price_per_hour": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "claude_code_only": {
+                                    "type": "boolean"
+                                  },
+                                  "fallback_group_id": {
+                                    "type": [
+                                      "integer",
+                                      "null"
+                                    ]
+                                  },
+                                  "fallback_group_id_on_invalid_request": {
+                                    "type": [
+                                      "integer",
+                                      "null"
+                                    ]
+                                  },
+                                  "allow_messages_dispatch": {
+                                    "type": "boolean"
+                                  },
+                                  "allow_live": {
+                                    "type": "boolean"
+                                  },
+                                  "require_oauth_only": {
+                                    "type": "boolean"
+                                  },
+                                  "require_privacy_set": {
+                                    "type": "boolean"
+                                  },
+                                  "rpm_limit": {
+                                    "type": "integer"
+                                  },
+                                  "max_reasoning_effort": {
+                                    "type": "string"
+                                  },
+                                  "max_reasoning_effort_over_limit": {
+                                    "type": "string"
+                                  },
+                                  "reasoning_effort_mappings": {
+                                    "type": [
+                                      "array",
+                                      "null"
+                                    ],
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "from": {
+                                          "type": "string"
+                                        },
+                                        "to": {
+                                          "type": "string"
+                                        },
+                                        "match_type": {
+                                          "type": "string"
+                                        },
+                                        "model": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "from",
+                                        "to"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "created_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updated_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "description",
+                                  "platform",
+                                  "rate_multiplier",
+                                  "is_exclusive",
+                                  "status",
+                                  "subscription_type",
+                                  "daily_limit_usd",
+                                  "weekly_limit_usd",
+                                  "monthly_limit_usd",
+                                  "long_context_pricing_enabled",
+                                  "allow_image_generation",
+                                  "allow_batch_image_generation",
+                                  "image_rate_independent",
+                                  "image_rate_multiplier",
+                                  "batch_image_discount_multiplier",
+                                  "batch_image_hold_multiplier",
+                                  "video_rate_independent",
+                                  "video_rate_multiplier",
+                                  "peak_rate_enabled",
+                                  "peak_start",
+                                  "peak_end",
+                                  "peak_rate_multiplier",
+                                  "image_price_1k",
+                                  "image_price_2k",
+                                  "image_price_4k",
+                                  "video_price_480p",
+                                  "video_price_720p",
+                                  "video_price_1080p",
+                                  "web_search_price_per_call",
+                                  "search_price_per_1k",
+                                  "audio_realtime_price_per_min",
+                                  "audio_tts_price_per_million_chars",
+                                  "audio_stt_price_per_hour",
+                                  "claude_code_only",
+                                  "fallback_group_id",
+                                  "fallback_group_id_on_invalid_request",
+                                  "allow_messages_dispatch",
+                                  "allow_live",
+                                  "require_oauth_only",
+                                  "require_privacy_set",
+                                  "rpm_limit",
+                                  "max_reasoning_effort",
+                                  "max_reasoning_effort_over_limit",
+                                  "reasoning_effort_mappings",
+                                  "created_at",
+                                  "updated_at"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "user_id",
+                              "key",
+                              "name",
+                              "group_id",
+                              "status",
+                              "ip_whitelist",
+                              "ip_blacklist",
+                              "last_used_at",
+                              "last_used_ip",
+                              "quota",
+                              "quota_used",
+                              "expires_at",
+                              "created_at",
+                              "updated_at",
+                              "current_concurrency",
+                              "rate_limit_5h",
+                              "rate_limit_1d",
+                              "rate_limit_7d",
+                              "usage_5h",
+                              "usage_1d",
+                              "usage_7d",
+                              "window_5h_start",
+                              "window_1d_start",
+                              "window_7d_start"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "pages": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "total",
+                        "page",
+                        "page_size",
+                        "pages"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Decimal digits; positive value used, otherwise defaults to 1. Parser is machine-int bounded; invalid text falls back.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "Decimal digits 1..1000, otherwise defaults to 20; nonempty value takes priority over limit.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Alias used only when page_size is absent/empty; 1..1000, else 20.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Trim surrounding whitespace, truncate to first 100 bytes; matches name/key in repository.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Passed to repository as filter; unsupported status normally matches no rows.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group_id",
+            "in": "query",
+            "required": false,
+            "description": "Signed base-10 int64 filter; unparsable/overflow ignored.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "description": "Default omitted value is created_at. Case-insensitive trimmed name, status, expires_at, last_used_at, created_at, id, group; unsupported values fall back to id. current_concurrency uses service sorting then pagination.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "description": "Case-insensitive asc/desc; unknown uses desc.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createUserAPIKey",
+        "summary": "Create API key for current user",
+        "description": "User self-service JWT session endpoint. Production JWT validates signature, expiry, active user, token version and configured session binding. Backend mode denies non-admin users; panel user rate limit applies. Admin compliance acknowledgement is NOT registered on these routes. No SSE/streaming. Ownership enforced by handler/service.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful production JSON response (including creation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "user_id": {
+                          "type": "integer"
+                        },
+                        "key": {
+                          "type": "string",
+                          "description": "Full owner-visible API key credential, returned on list/get/create/update; not masked or create-only. Treat as secret. Synthetic fixtures only."
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "group_id": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "ip_whitelist": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "ip_blacklist": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "last_used_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "last_used_ip": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "quota": {
+                          "type": "number"
+                        },
+                        "quota_used": {
+                          "type": "number"
+                        },
+                        "expires_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "current_concurrency": {
+                          "type": "integer"
+                        },
+                        "rate_limit_5h": {
+                          "type": "number"
+                        },
+                        "rate_limit_1d": {
+                          "type": "number"
+                        },
+                        "rate_limit_7d": {
+                          "type": "number"
+                        },
+                        "usage_5h": {
+                          "type": "number"
+                        },
+                        "usage_1d": {
+                          "type": "number"
+                        },
+                        "usage_7d": {
+                          "type": "number"
+                        },
+                        "window_5h_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "window_1d_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "window_7d_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "reset_5h_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "reset_1d_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "reset_7d_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "balance": {
+                              "type": "number"
+                            },
+                            "frozen_balance": {
+                              "type": "number"
+                            },
+                            "concurrency": {
+                              "type": "integer"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "allowed_groups": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "integer"
+                              }
+                            },
+                            "last_active_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "deleted_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "balance_notify_enabled": {
+                              "type": "boolean"
+                            },
+                            "balance_notify_threshold_type": {
+                              "type": "string"
+                            },
+                            "balance_notify_threshold": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "balance_notify_extra_emails": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "disabled": {
+                                    "type": "boolean"
+                                  },
+                                  "verified": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "email",
+                                  "disabled",
+                                  "verified"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "total_recharged": {
+                              "type": "number"
+                            },
+                            "rpm_limit": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "email",
+                            "username",
+                            "role",
+                            "balance",
+                            "frozen_balance",
+                            "concurrency",
+                            "status",
+                            "allowed_groups",
+                            "created_at",
+                            "updated_at",
+                            "balance_notify_enabled",
+                            "balance_notify_threshold_type",
+                            "balance_notify_threshold",
+                            "balance_notify_extra_emails",
+                            "total_recharged",
+                            "rpm_limit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "platform": {
+                              "type": "string"
+                            },
+                            "rate_multiplier": {
+                              "type": "number"
+                            },
+                            "is_exclusive": {
+                              "type": "boolean"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "subscription_type": {
+                              "type": "string"
+                            },
+                            "daily_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "weekly_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "monthly_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "long_context_pricing_enabled": {
+                              "type": "boolean"
+                            },
+                            "allow_image_generation": {
+                              "type": "boolean"
+                            },
+                            "allow_batch_image_generation": {
+                              "type": "boolean"
+                            },
+                            "image_rate_independent": {
+                              "type": "boolean"
+                            },
+                            "image_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "batch_image_discount_multiplier": {
+                              "type": "number"
+                            },
+                            "batch_image_hold_multiplier": {
+                              "type": "number"
+                            },
+                            "video_rate_independent": {
+                              "type": "boolean"
+                            },
+                            "video_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "peak_rate_enabled": {
+                              "type": "boolean"
+                            },
+                            "peak_start": {
+                              "type": "string"
+                            },
+                            "peak_end": {
+                              "type": "string"
+                            },
+                            "peak_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "image_price_1k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "image_price_2k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "image_price_4k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_480p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_720p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_1080p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_model_prices": {
+                              "type": "object",
+                              "properties": {},
+                              "required": [],
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {},
+                                "required": [],
+                                "additionalProperties": {
+                                  "type": "number"
+                                }
+                              }
+                            },
+                            "web_search_price_per_call": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "search_price_per_1k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_realtime_price_per_min": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_tts_price_per_million_chars": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_stt_price_per_hour": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "claude_code_only": {
+                              "type": "boolean"
+                            },
+                            "fallback_group_id": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ]
+                            },
+                            "fallback_group_id_on_invalid_request": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ]
+                            },
+                            "allow_messages_dispatch": {
+                              "type": "boolean"
+                            },
+                            "allow_live": {
+                              "type": "boolean"
+                            },
+                            "require_oauth_only": {
+                              "type": "boolean"
+                            },
+                            "require_privacy_set": {
+                              "type": "boolean"
+                            },
+                            "rpm_limit": {
+                              "type": "integer"
+                            },
+                            "max_reasoning_effort": {
+                              "type": "string"
+                            },
+                            "max_reasoning_effort_over_limit": {
+                              "type": "string"
+                            },
+                            "reasoning_effort_mappings": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "from": {
+                                    "type": "string"
+                                  },
+                                  "to": {
+                                    "type": "string"
+                                  },
+                                  "match_type": {
+                                    "type": "string"
+                                  },
+                                  "model": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "from",
+                                  "to"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "description",
+                            "platform",
+                            "rate_multiplier",
+                            "is_exclusive",
+                            "status",
+                            "subscription_type",
+                            "daily_limit_usd",
+                            "weekly_limit_usd",
+                            "monthly_limit_usd",
+                            "long_context_pricing_enabled",
+                            "allow_image_generation",
+                            "allow_batch_image_generation",
+                            "image_rate_independent",
+                            "image_rate_multiplier",
+                            "batch_image_discount_multiplier",
+                            "batch_image_hold_multiplier",
+                            "video_rate_independent",
+                            "video_rate_multiplier",
+                            "peak_rate_enabled",
+                            "peak_start",
+                            "peak_end",
+                            "peak_rate_multiplier",
+                            "image_price_1k",
+                            "image_price_2k",
+                            "image_price_4k",
+                            "video_price_480p",
+                            "video_price_720p",
+                            "video_price_1080p",
+                            "web_search_price_per_call",
+                            "search_price_per_1k",
+                            "audio_realtime_price_per_min",
+                            "audio_tts_price_per_million_chars",
+                            "audio_stt_price_per_hour",
+                            "claude_code_only",
+                            "fallback_group_id",
+                            "fallback_group_id_on_invalid_request",
+                            "allow_messages_dispatch",
+                            "allow_live",
+                            "require_oauth_only",
+                            "require_privacy_set",
+                            "rpm_limit",
+                            "max_reasoning_effort",
+                            "max_reasoning_effort_over_limit",
+                            "reasoning_effort_mappings",
+                            "created_at",
+                            "updated_at"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "user_id",
+                        "key",
+                        "name",
+                        "group_id",
+                        "status",
+                        "ip_whitelist",
+                        "ip_blacklist",
+                        "last_used_at",
+                        "last_used_ip",
+                        "quota",
+                        "quota_used",
+                        "expires_at",
+                        "created_at",
+                        "updated_at",
+                        "current_concurrency",
+                        "rate_limit_5h",
+                        "rate_limit_1d",
+                        "rate_limit_7d",
+                        "usage_5h",
+                        "usage_1d",
+                        "usage_7d",
+                        "window_5h_start",
+                        "window_1d_start",
+                        "window_7d_start"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "X-Idempotency-Replayed": {
+                "description": "Present as true when coordinator replays a completed request.",
+                "required": false,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed path/body or service validation failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API key/group absent; GET also hides other-owner keys.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Duplicate custom key or idempotency conflict/in-progress/backoff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 409
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Present for in-progress/backoff conflicts; plain payload conflict has no retry header.",
+                "required": false,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": false,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configured idempotency store unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 503
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Coordinator-dependent: missing allowed in default ObserveOnly or absent coordinator; required when enforcement enabled. Trimmed ASCII bytes 33..126, <=128 bytes. Supplied key replays matching actor/method/route/payload; conflict 409, store unavailable 503.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "JSON decoded by production Gin/encoding/json binding: unknown fields ignored; null pointer fields mean unset. The offline contract checker rejects ambiguous duplicate members, malformed UTF-8 and trailing values, while production binding may accept these; this is a tooling integrity rule, not a claimed ingress rejection. Numeric limits finite/nonnegative. PUT resets are opt-in; null IP arrays unchanged, [] clears.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Required nonempty string; whitespace accepted; stored HTML escaped."
+                  },
+                  "group_id": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "custom_key": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Absent/null/empty generates a key; otherwise at least 16 ASCII letters/digits/underscore/hyphen, uniqueness enforced; no creation max length enforced here."
+                  },
+                  "ip_whitelist": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "IP addresses or CIDR patterns; invalid patterns return 400."
+                  },
+                  "ip_blacklist": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "IP addresses or CIDR patterns; invalid patterns return 400."
+                  },
+                  "quota": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1.7976931348623157e+308
+                  },
+                  "expires_in_days": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 1
+                  },
+                  "rate_limit_5h": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1.7976931348623157e+308
+                  },
+                  "rate_limit_1d": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1.7976931348623157e+308
+                  },
+                  "rate_limit_7d": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1.7976931348623157e+308
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/keys/{id}": {
+      "get": {
+        "operationId": "getUserAPIKey",
+        "summary": "Get own API key",
+        "description": "User self-service JWT session endpoint. Production JWT validates signature, expiry, active user, token version and configured session binding. Backend mode denies non-admin users; panel user rate limit applies. Admin compliance acknowledgement is NOT registered on these routes. No SSE/streaming. Ownership enforced by handler/service.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful production JSON response (including creation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "user_id": {
+                          "type": "integer"
+                        },
+                        "key": {
+                          "type": "string",
+                          "description": "Full owner-visible API key credential, returned on list/get/create/update; not masked or create-only. Treat as secret. Synthetic fixtures only."
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "group_id": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "ip_whitelist": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "ip_blacklist": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "last_used_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "last_used_ip": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "quota": {
+                          "type": "number"
+                        },
+                        "quota_used": {
+                          "type": "number"
+                        },
+                        "expires_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "current_concurrency": {
+                          "type": "integer"
+                        },
+                        "rate_limit_5h": {
+                          "type": "number"
+                        },
+                        "rate_limit_1d": {
+                          "type": "number"
+                        },
+                        "rate_limit_7d": {
+                          "type": "number"
+                        },
+                        "usage_5h": {
+                          "type": "number"
+                        },
+                        "usage_1d": {
+                          "type": "number"
+                        },
+                        "usage_7d": {
+                          "type": "number"
+                        },
+                        "window_5h_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "window_1d_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "window_7d_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "reset_5h_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "reset_1d_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "reset_7d_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "balance": {
+                              "type": "number"
+                            },
+                            "frozen_balance": {
+                              "type": "number"
+                            },
+                            "concurrency": {
+                              "type": "integer"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "allowed_groups": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "integer"
+                              }
+                            },
+                            "last_active_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "deleted_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "balance_notify_enabled": {
+                              "type": "boolean"
+                            },
+                            "balance_notify_threshold_type": {
+                              "type": "string"
+                            },
+                            "balance_notify_threshold": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "balance_notify_extra_emails": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "disabled": {
+                                    "type": "boolean"
+                                  },
+                                  "verified": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "email",
+                                  "disabled",
+                                  "verified"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "total_recharged": {
+                              "type": "number"
+                            },
+                            "rpm_limit": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "email",
+                            "username",
+                            "role",
+                            "balance",
+                            "frozen_balance",
+                            "concurrency",
+                            "status",
+                            "allowed_groups",
+                            "created_at",
+                            "updated_at",
+                            "balance_notify_enabled",
+                            "balance_notify_threshold_type",
+                            "balance_notify_threshold",
+                            "balance_notify_extra_emails",
+                            "total_recharged",
+                            "rpm_limit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "platform": {
+                              "type": "string"
+                            },
+                            "rate_multiplier": {
+                              "type": "number"
+                            },
+                            "is_exclusive": {
+                              "type": "boolean"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "subscription_type": {
+                              "type": "string"
+                            },
+                            "daily_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "weekly_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "monthly_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "long_context_pricing_enabled": {
+                              "type": "boolean"
+                            },
+                            "allow_image_generation": {
+                              "type": "boolean"
+                            },
+                            "allow_batch_image_generation": {
+                              "type": "boolean"
+                            },
+                            "image_rate_independent": {
+                              "type": "boolean"
+                            },
+                            "image_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "batch_image_discount_multiplier": {
+                              "type": "number"
+                            },
+                            "batch_image_hold_multiplier": {
+                              "type": "number"
+                            },
+                            "video_rate_independent": {
+                              "type": "boolean"
+                            },
+                            "video_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "peak_rate_enabled": {
+                              "type": "boolean"
+                            },
+                            "peak_start": {
+                              "type": "string"
+                            },
+                            "peak_end": {
+                              "type": "string"
+                            },
+                            "peak_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "image_price_1k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "image_price_2k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "image_price_4k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_480p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_720p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_1080p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_model_prices": {
+                              "type": "object",
+                              "properties": {},
+                              "required": [],
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {},
+                                "required": [],
+                                "additionalProperties": {
+                                  "type": "number"
+                                }
+                              }
+                            },
+                            "web_search_price_per_call": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "search_price_per_1k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_realtime_price_per_min": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_tts_price_per_million_chars": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_stt_price_per_hour": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "claude_code_only": {
+                              "type": "boolean"
+                            },
+                            "fallback_group_id": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ]
+                            },
+                            "fallback_group_id_on_invalid_request": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ]
+                            },
+                            "allow_messages_dispatch": {
+                              "type": "boolean"
+                            },
+                            "allow_live": {
+                              "type": "boolean"
+                            },
+                            "require_oauth_only": {
+                              "type": "boolean"
+                            },
+                            "require_privacy_set": {
+                              "type": "boolean"
+                            },
+                            "rpm_limit": {
+                              "type": "integer"
+                            },
+                            "max_reasoning_effort": {
+                              "type": "string"
+                            },
+                            "max_reasoning_effort_over_limit": {
+                              "type": "string"
+                            },
+                            "reasoning_effort_mappings": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "from": {
+                                    "type": "string"
+                                  },
+                                  "to": {
+                                    "type": "string"
+                                  },
+                                  "match_type": {
+                                    "type": "string"
+                                  },
+                                  "model": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "from",
+                                  "to"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "description",
+                            "platform",
+                            "rate_multiplier",
+                            "is_exclusive",
+                            "status",
+                            "subscription_type",
+                            "daily_limit_usd",
+                            "weekly_limit_usd",
+                            "monthly_limit_usd",
+                            "long_context_pricing_enabled",
+                            "allow_image_generation",
+                            "allow_batch_image_generation",
+                            "image_rate_independent",
+                            "image_rate_multiplier",
+                            "batch_image_discount_multiplier",
+                            "batch_image_hold_multiplier",
+                            "video_rate_independent",
+                            "video_rate_multiplier",
+                            "peak_rate_enabled",
+                            "peak_start",
+                            "peak_end",
+                            "peak_rate_multiplier",
+                            "image_price_1k",
+                            "image_price_2k",
+                            "image_price_4k",
+                            "video_price_480p",
+                            "video_price_720p",
+                            "video_price_1080p",
+                            "web_search_price_per_call",
+                            "search_price_per_1k",
+                            "audio_realtime_price_per_min",
+                            "audio_tts_price_per_million_chars",
+                            "audio_stt_price_per_hour",
+                            "claude_code_only",
+                            "fallback_group_id",
+                            "fallback_group_id_on_invalid_request",
+                            "allow_messages_dispatch",
+                            "allow_live",
+                            "require_oauth_only",
+                            "require_privacy_set",
+                            "rpm_limit",
+                            "max_reasoning_effort",
+                            "max_reasoning_effort_over_limit",
+                            "reasoning_effort_mappings",
+                            "created_at",
+                            "updated_at"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "user_id",
+                        "key",
+                        "name",
+                        "group_id",
+                        "status",
+                        "ip_whitelist",
+                        "ip_blacklist",
+                        "last_used_at",
+                        "last_used_ip",
+                        "quota",
+                        "quota_used",
+                        "expires_at",
+                        "created_at",
+                        "updated_at",
+                        "current_concurrency",
+                        "rate_limit_5h",
+                        "rate_limit_1d",
+                        "rate_limit_7d",
+                        "usage_5h",
+                        "usage_1d",
+                        "usage_7d",
+                        "window_5h_start",
+                        "window_1d_start",
+                        "window_7d_start"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed path/body or service validation failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API key/group absent; GET also hides other-owner keys.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "strconv.ParseInt base 10 int64; signed/zero IDs parse but normally return not-found. Other-owner GET=404; PUT/DELETE=403.",
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            }
+          }
+        ]
+      },
+      "put": {
+        "operationId": "updateUserAPIKey",
+        "summary": "Update own API key",
+        "description": "User self-service JWT session endpoint. Production JWT validates signature, expiry, active user, token version and configured session binding. Backend mode denies non-admin users; panel user rate limit applies. Admin compliance acknowledgement is NOT registered on these routes. No SSE/streaming. Ownership enforced by handler/service.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful production JSON response (including creation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "user_id": {
+                          "type": "integer"
+                        },
+                        "key": {
+                          "type": "string",
+                          "description": "Full owner-visible API key credential, returned on list/get/create/update; not masked or create-only. Treat as secret. Synthetic fixtures only."
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "group_id": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ]
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "ip_whitelist": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "ip_blacklist": {
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "last_used_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "last_used_ip": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "quota": {
+                          "type": "number"
+                        },
+                        "quota_used": {
+                          "type": "number"
+                        },
+                        "expires_at": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "current_concurrency": {
+                          "type": "integer"
+                        },
+                        "rate_limit_5h": {
+                          "type": "number"
+                        },
+                        "rate_limit_1d": {
+                          "type": "number"
+                        },
+                        "rate_limit_7d": {
+                          "type": "number"
+                        },
+                        "usage_5h": {
+                          "type": "number"
+                        },
+                        "usage_1d": {
+                          "type": "number"
+                        },
+                        "usage_7d": {
+                          "type": "number"
+                        },
+                        "window_5h_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "window_1d_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "window_7d_start": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
+                        },
+                        "reset_5h_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "reset_1d_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "reset_7d_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "role": {
+                              "type": "string"
+                            },
+                            "balance": {
+                              "type": "number"
+                            },
+                            "frozen_balance": {
+                              "type": "number"
+                            },
+                            "concurrency": {
+                              "type": "integer"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "allowed_groups": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "integer"
+                              }
+                            },
+                            "last_active_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "deleted_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "balance_notify_enabled": {
+                              "type": "boolean"
+                            },
+                            "balance_notify_threshold_type": {
+                              "type": "string"
+                            },
+                            "balance_notify_threshold": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "balance_notify_extra_emails": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "disabled": {
+                                    "type": "boolean"
+                                  },
+                                  "verified": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "email",
+                                  "disabled",
+                                  "verified"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "total_recharged": {
+                              "type": "number"
+                            },
+                            "rpm_limit": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "email",
+                            "username",
+                            "role",
+                            "balance",
+                            "frozen_balance",
+                            "concurrency",
+                            "status",
+                            "allowed_groups",
+                            "created_at",
+                            "updated_at",
+                            "balance_notify_enabled",
+                            "balance_notify_threshold_type",
+                            "balance_notify_threshold",
+                            "balance_notify_extra_emails",
+                            "total_recharged",
+                            "rpm_limit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "platform": {
+                              "type": "string"
+                            },
+                            "rate_multiplier": {
+                              "type": "number"
+                            },
+                            "is_exclusive": {
+                              "type": "boolean"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "subscription_type": {
+                              "type": "string"
+                            },
+                            "daily_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "weekly_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "monthly_limit_usd": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "long_context_pricing_enabled": {
+                              "type": "boolean"
+                            },
+                            "allow_image_generation": {
+                              "type": "boolean"
+                            },
+                            "allow_batch_image_generation": {
+                              "type": "boolean"
+                            },
+                            "image_rate_independent": {
+                              "type": "boolean"
+                            },
+                            "image_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "batch_image_discount_multiplier": {
+                              "type": "number"
+                            },
+                            "batch_image_hold_multiplier": {
+                              "type": "number"
+                            },
+                            "video_rate_independent": {
+                              "type": "boolean"
+                            },
+                            "video_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "peak_rate_enabled": {
+                              "type": "boolean"
+                            },
+                            "peak_start": {
+                              "type": "string"
+                            },
+                            "peak_end": {
+                              "type": "string"
+                            },
+                            "peak_rate_multiplier": {
+                              "type": "number"
+                            },
+                            "image_price_1k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "image_price_2k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "image_price_4k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_480p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_720p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_price_1080p": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "video_model_prices": {
+                              "type": "object",
+                              "properties": {},
+                              "required": [],
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {},
+                                "required": [],
+                                "additionalProperties": {
+                                  "type": "number"
+                                }
+                              }
+                            },
+                            "web_search_price_per_call": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "search_price_per_1k": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_realtime_price_per_min": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_tts_price_per_million_chars": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "audio_stt_price_per_hour": {
+                              "type": [
+                                "number",
+                                "null"
+                              ]
+                            },
+                            "claude_code_only": {
+                              "type": "boolean"
+                            },
+                            "fallback_group_id": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ]
+                            },
+                            "fallback_group_id_on_invalid_request": {
+                              "type": [
+                                "integer",
+                                "null"
+                              ]
+                            },
+                            "allow_messages_dispatch": {
+                              "type": "boolean"
+                            },
+                            "allow_live": {
+                              "type": "boolean"
+                            },
+                            "require_oauth_only": {
+                              "type": "boolean"
+                            },
+                            "require_privacy_set": {
+                              "type": "boolean"
+                            },
+                            "rpm_limit": {
+                              "type": "integer"
+                            },
+                            "max_reasoning_effort": {
+                              "type": "string"
+                            },
+                            "max_reasoning_effort_over_limit": {
+                              "type": "string"
+                            },
+                            "reasoning_effort_mappings": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "from": {
+                                    "type": "string"
+                                  },
+                                  "to": {
+                                    "type": "string"
+                                  },
+                                  "match_type": {
+                                    "type": "string"
+                                  },
+                                  "model": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "from",
+                                  "to"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "description",
+                            "platform",
+                            "rate_multiplier",
+                            "is_exclusive",
+                            "status",
+                            "subscription_type",
+                            "daily_limit_usd",
+                            "weekly_limit_usd",
+                            "monthly_limit_usd",
+                            "long_context_pricing_enabled",
+                            "allow_image_generation",
+                            "allow_batch_image_generation",
+                            "image_rate_independent",
+                            "image_rate_multiplier",
+                            "batch_image_discount_multiplier",
+                            "batch_image_hold_multiplier",
+                            "video_rate_independent",
+                            "video_rate_multiplier",
+                            "peak_rate_enabled",
+                            "peak_start",
+                            "peak_end",
+                            "peak_rate_multiplier",
+                            "image_price_1k",
+                            "image_price_2k",
+                            "image_price_4k",
+                            "video_price_480p",
+                            "video_price_720p",
+                            "video_price_1080p",
+                            "web_search_price_per_call",
+                            "search_price_per_1k",
+                            "audio_realtime_price_per_min",
+                            "audio_tts_price_per_million_chars",
+                            "audio_stt_price_per_hour",
+                            "claude_code_only",
+                            "fallback_group_id",
+                            "fallback_group_id_on_invalid_request",
+                            "allow_messages_dispatch",
+                            "allow_live",
+                            "require_oauth_only",
+                            "require_privacy_set",
+                            "rpm_limit",
+                            "max_reasoning_effort",
+                            "max_reasoning_effort_over_limit",
+                            "reasoning_effort_mappings",
+                            "created_at",
+                            "updated_at"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "user_id",
+                        "key",
+                        "name",
+                        "group_id",
+                        "status",
+                        "ip_whitelist",
+                        "ip_blacklist",
+                        "last_used_at",
+                        "last_used_ip",
+                        "quota",
+                        "quota_used",
+                        "expires_at",
+                        "created_at",
+                        "updated_at",
+                        "current_concurrency",
+                        "rate_limit_5h",
+                        "rate_limit_1d",
+                        "rate_limit_7d",
+                        "usage_5h",
+                        "usage_1d",
+                        "usage_7d",
+                        "window_5h_start",
+                        "window_1d_start",
+                        "window_7d_start"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed path/body or service validation failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API key/group absent; GET also hides other-owner keys.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "strconv.ParseInt base 10 int64; signed/zero IDs parse but normally return not-found. Other-owner GET=404; PUT/DELETE=403.",
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "JSON decoded by production Gin/encoding/json binding: unknown fields ignored; null pointer fields mean unset. The offline contract checker rejects ambiguous duplicate members, malformed UTF-8 and trailing values, while production binding may accept these; this is a tooling integrity rule, not a claimed ingress rejection. Numeric limits finite/nonnegative. PUT resets are opt-in; null IP arrays unchanged, [] clears.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Omitted/null/empty means unchanged; nonempty is HTML escaped."
+                  },
+                  "group_id": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "description": "Omitted/null means unchanged; cannot clear binding using null."
+                  },
+                  "ip_whitelist": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "IP addresses or CIDR patterns; invalid patterns return 400."
+                  },
+                  "ip_blacklist": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "IP addresses or CIDR patterns; invalid patterns return 400."
+                  },
+                  "quota": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1.7976931348623157e+308
+                  },
+                  "rate_limit_5h": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1.7976931348623157e+308
+                  },
+                  "rate_limit_1d": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1.7976931348623157e+308
+                  },
+                  "rate_limit_7d": {
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "minimum": 0,
+                    "maximum": 1.7976931348623157e+308
+                  },
+                  "status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "",
+                      "active",
+                      "inactive",
+                      null
+                    ]
+                  },
+                  "expires_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Omitted/null unchanged; empty string clears; otherwise RFC3339. Clearing or future expiry may reactivate an expired key."
+                  },
+                  "reset_quota": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  },
+                  "reset_rate_limit_usage": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [],
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteUserAPIKey",
+        "summary": "Delete own API key",
+        "description": "User self-service JWT session endpoint. Production JWT validates signature, expiry, active user, token version and configured session binding. Backend mode denies non-admin users; panel user rate limit applies. Admin compliance acknowledgement is NOT registered on these routes. No SSE/streaming. Ownership enforced by handler/service.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful production JSON response (including creation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "const": "API key deleted successfully"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed path/body or service validation failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "API key/group absent; GET also hides other-owner keys.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "strconv.ParseInt base 10 int64; signed/zero IDs parse but normally return not-found. Other-owner GET=404; PUT/DELETE=403.",
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/groups/available": {
+      "get": {
+        "operationId": "getBindableGroups",
+        "summary": "List bindable active groups",
+        "description": "User self-service JWT session endpoint. Production JWT validates signature, expiry, active user, token version and configured session binding. Backend mode denies non-admin users; panel user rate limit applies. Admin compliance acknowledgement is NOT registered on these routes. No SSE/streaming. Ownership enforced by handler/service.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful production JSON response (including creation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "platform": {
+                            "type": "string"
+                          },
+                          "rate_multiplier": {
+                            "type": "number"
+                          },
+                          "is_exclusive": {
+                            "type": "boolean"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "subscription_type": {
+                            "type": "string"
+                          },
+                          "daily_limit_usd": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "weekly_limit_usd": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "monthly_limit_usd": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "long_context_pricing_enabled": {
+                            "type": "boolean"
+                          },
+                          "allow_image_generation": {
+                            "type": "boolean"
+                          },
+                          "allow_batch_image_generation": {
+                            "type": "boolean"
+                          },
+                          "image_rate_independent": {
+                            "type": "boolean"
+                          },
+                          "image_rate_multiplier": {
+                            "type": "number"
+                          },
+                          "batch_image_discount_multiplier": {
+                            "type": "number"
+                          },
+                          "batch_image_hold_multiplier": {
+                            "type": "number"
+                          },
+                          "video_rate_independent": {
+                            "type": "boolean"
+                          },
+                          "video_rate_multiplier": {
+                            "type": "number"
+                          },
+                          "peak_rate_enabled": {
+                            "type": "boolean"
+                          },
+                          "peak_start": {
+                            "type": "string"
+                          },
+                          "peak_end": {
+                            "type": "string"
+                          },
+                          "peak_rate_multiplier": {
+                            "type": "number"
+                          },
+                          "image_price_1k": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "image_price_2k": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "image_price_4k": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "video_price_480p": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "video_price_720p": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "video_price_1080p": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "video_model_prices": {
+                            "type": "object",
+                            "properties": {},
+                            "required": [],
+                            "additionalProperties": {
+                              "type": "object",
+                              "properties": {},
+                              "required": [],
+                              "additionalProperties": {
+                                "type": "number"
+                              }
+                            }
+                          },
+                          "web_search_price_per_call": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "search_price_per_1k": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "audio_realtime_price_per_min": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "audio_tts_price_per_million_chars": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "audio_stt_price_per_hour": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
+                          "claude_code_only": {
+                            "type": "boolean"
+                          },
+                          "fallback_group_id": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ]
+                          },
+                          "fallback_group_id_on_invalid_request": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ]
+                          },
+                          "allow_messages_dispatch": {
+                            "type": "boolean"
+                          },
+                          "allow_live": {
+                            "type": "boolean"
+                          },
+                          "require_oauth_only": {
+                            "type": "boolean"
+                          },
+                          "require_privacy_set": {
+                            "type": "boolean"
+                          },
+                          "rpm_limit": {
+                            "type": "integer"
+                          },
+                          "max_reasoning_effort": {
+                            "type": "string"
+                          },
+                          "max_reasoning_effort_over_limit": {
+                            "type": "string"
+                          },
+                          "reasoning_effort_mappings": {
+                            "type": [
+                              "array",
+                              "null"
+                            ],
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "from": {
+                                  "type": "string"
+                                },
+                                "to": {
+                                  "type": "string"
+                                },
+                                "match_type": {
+                                  "type": "string"
+                                },
+                                "model": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "from",
+                                "to"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "platform",
+                          "rate_multiplier",
+                          "is_exclusive",
+                          "status",
+                          "subscription_type",
+                          "daily_limit_usd",
+                          "weekly_limit_usd",
+                          "monthly_limit_usd",
+                          "long_context_pricing_enabled",
+                          "allow_image_generation",
+                          "allow_batch_image_generation",
+                          "image_rate_independent",
+                          "image_rate_multiplier",
+                          "batch_image_discount_multiplier",
+                          "batch_image_hold_multiplier",
+                          "video_rate_independent",
+                          "video_rate_multiplier",
+                          "peak_rate_enabled",
+                          "peak_start",
+                          "peak_end",
+                          "peak_rate_multiplier",
+                          "image_price_1k",
+                          "image_price_2k",
+                          "image_price_4k",
+                          "video_price_480p",
+                          "video_price_720p",
+                          "video_price_1080p",
+                          "web_search_price_per_call",
+                          "search_price_per_1k",
+                          "audio_realtime_price_per_min",
+                          "audio_tts_price_per_million_chars",
+                          "audio_stt_price_per_hour",
+                          "claude_code_only",
+                          "fallback_group_id",
+                          "fallback_group_id_on_invalid_request",
+                          "allow_messages_dispatch",
+                          "allow_live",
+                          "require_oauth_only",
+                          "require_privacy_set",
+                          "rpm_limit",
+                          "max_reasoning_effort",
+                          "max_reasoning_effort_over_limit",
+                          "reasoning_effort_mappings",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/groups/rates": {
+      "get": {
+        "operationId": "getUserGroupRates",
+        "summary": "Get custom group rate multipliers",
+        "description": "User self-service JWT session endpoint. Production JWT validates signature, expiry, active user, token version and configured session binding. Backend mode denies non-admin users; panel user rate limit applies. Admin compliance acknowledgement is NOT registered on these routes. No SSE/streaming. Ownership enforced by handler/service.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful production JSON response (including creation).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "number"
+                      },
+                      "propertyNames": {
+                        "type": "string",
+                        "format": "int64"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
                     }
                   },
                   "required": [
