@@ -487,7 +487,15 @@ func openAPIValidateResponse(op openAPIOperation, rec *httptest.ResponseRecorder
 			return fmt.Errorf("missing response header %s", name)
 		}
 		if name == "Retry-After" {
-			n, err := strconv.Atoi(value)
+			if len(rec.Header().Values(name)) != 1 || value == "" {
+				return fmt.Errorf("invalid Retry-After seconds")
+			}
+			for _, digit := range value {
+				if digit < '0' || digit > '9' {
+					return fmt.Errorf("invalid Retry-After seconds")
+				}
+			}
+			n, err := strconv.ParseInt(value, 10, 64)
 			if err != nil || n <= 0 {
 				return fmt.Errorf("invalid Retry-After seconds")
 			}

@@ -193,6 +193,9 @@ func openAPIRead(t *testing.T, name string, v any) {
 
 // Both schema constants and response values must retain exact JSON numbers.
 func openAPIDecode(data []byte, v any) error {
+	if err := openAPICheckRawJSON(data, v); err != nil {
+		return err
+	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
 	decoder.DisallowUnknownFields()
