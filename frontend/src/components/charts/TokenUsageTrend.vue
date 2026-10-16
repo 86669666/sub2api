@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   Chart as ChartJS,
@@ -55,8 +55,22 @@ const props = defineProps<{
   loading?: boolean
 }>()
 
-const isDarkMode = computed(() => {
-  return document.documentElement.classList.contains('dark')
+const isDarkMode = ref(document.documentElement.classList.contains('dark'))
+let themeObserver: MutationObserver | null = null
+
+onMounted(() => {
+  const root = document.documentElement
+  isDarkMode.value = root.classList.contains('dark')
+  // Theme controls share the root class; canvas colors need a reactive update too.
+  themeObserver = new MutationObserver(() => {
+    isDarkMode.value = root.classList.contains('dark')
+  })
+  themeObserver.observe(root, { attributes: true, attributeFilter: ['class'] })
+})
+
+onUnmounted(() => {
+  themeObserver?.disconnect()
+  themeObserver = null
 })
 
 const chartColors = computed(() => {
@@ -101,6 +115,8 @@ const chartData = computed(() => {
         data: props.trendData.map((d) => d.cache_creation_tokens),
         borderColor: chartColors.value.faint,
         backgroundColor: 'transparent',
+        borderDash: [2, 3],
+        pointStyle: 'triangle' as const,
         fill: false,
         tension: 0.35
       },
@@ -109,6 +125,8 @@ const chartData = computed(() => {
         data: props.trendData.map((d) => d.cache_read_tokens),
         borderColor: chartColors.value.faint,
         backgroundColor: 'transparent',
+        borderDash: [8, 3],
+        pointStyle: 'rectRot' as const,
         fill: false,
         tension: 0.35
       },
@@ -142,7 +160,6 @@ const lineOptions = computed(() => ({
       labels: {
         color: chartColors.value.text,
         usePointStyle: true,
-        pointStyle: 'circle',
         padding: 15,
         font: {
           size: 11
