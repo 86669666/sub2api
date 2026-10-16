@@ -75,6 +75,11 @@ try:
         manifests.append(json.loads(run(['docker','exec',c,'cat',path]).stdout))
     assert manifests[0]==manifests[1] and manifests[0]['candidate']==sha
     receipt['manifest']=manifests[0]
+    # Inspect production app assets, not the separately compiled test harness.
+    asset_check = 'for f in /usr/share/nginx/html/assets/*.js; do if grep -Fq "$1" "$f" && grep -Fq "$2" "$f" && grep -Fq "$3" "$f"; then sha256sum "$f"; fi; done'
+    asset_receipt=run(['docker','exec',run_id+'-panel','sh','-c',asset_check,'--',sha,manifests[0]['panel'],manifests[0]['gateway']]).stdout.strip()
+    assert asset_receipt, 'production app bundle does not contain the matching candidate/origin contract'
+    receipt['production_bundle_contract_sha256']=asset_receipt
     origin=('Origin','http://127.0.0.1:8088')
     for hs in ['', 'authorization', ' Content-Type , AUTHORIZATION, idempotency-key ', 'authorization,authorization']:
         control(clear=True)
