@@ -502,7 +502,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { testDatabase, testRedis, install, type InstallRequest } from '@/api/setup'
-import { buildGatewayUrl } from '@/api/client'
+import { getSetupStatus } from '@/api/setup'
 import Select from '@/components/common/Select.vue'
 import Toggle from '@/components/common/Toggle.vue'
 import Icon from '@/components/icons/Icon.vue'
@@ -655,22 +655,11 @@ async function waitForServiceRestart() {
     try {
       // Use setup status endpoint as it tells us the real mode
       // Service might return 404 or connection refused while restarting
-      const response = await fetch(buildGatewayUrl('/setup/status'), {
-        method: 'GET',
-        cache: 'no-store'
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // If needs_setup is false, service has restarted in normal mode
-        if (data.data && !data.data.needs_setup) {
-          serviceReady.value = true
-          // Redirect to login page after a short delay
-          setTimeout(() => {
-            window.location.href = '/login'
-          }, 1500)
-          return
-        }
+      const status = await getSetupStatus()
+      if (!status.needs_setup) {
+        serviceReady.value = true
+        setTimeout(() => { window.location.href = '/login' }, 1500)
+        return
       }
     } catch {
       // Service not ready or network error during restart, continue polling

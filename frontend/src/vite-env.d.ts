@@ -2,6 +2,10 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string
+  readonly VITE_GATEWAY_BASE_URL?: string
+  readonly VITE_PANEL_PUBLIC_ORIGIN?: string
+  readonly VITE_DEPLOYMENT_MODE?: string
+  readonly VITE_BUILD_COMMIT?: string
   readonly BASE_URL: string
 }
 

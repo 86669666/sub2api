@@ -1,0 +1,45 @@
+name: Separated D0 runtime
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-browser-nginx:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify ephemeral runner boundary
+        env:
+          RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$GITHUB_ACTIONS" = true
+          test "$(uname -s)" = Linux
+          test "$(docker context show)" = default
+      - name: Test exact images and actual browser
+        env:
+          RUNNER_ENVIRONMENT: ${{ runner.environment }}
+        run: >-
+          python3 deploy/separated/tests/ci-run.py --execute
+          --evidence "$RUNNER_TEMP/sub2api-d0-evidence"
+      - name: Preserve runtime evidence and cleanup receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: separated-d0-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/sub2api-d0-evidence/
+          if-no-files-found: error
+          retention-days: 14

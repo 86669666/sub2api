@@ -423,7 +423,7 @@ import { useAppStore } from '@/stores'
 import { FeatureFlags, resolveFeatureFlag } from '@/utils/featureFlags'
 import LocaleSwitcher from '@/components/common/LocaleSwitcher.vue'
 import Icon from '@/components/icons/Icon.vue'
-import { buildGatewayUrl } from '@/api/client'
+import { gatewayFetch } from '@/api/gateway'
 import { formatDateLocalInput } from '@/utils/format'
 import { sanitizeUrl } from '@/utils/url'
 
@@ -862,10 +862,8 @@ function getBrowserTimezone(): string {
 
 async function fetchUsage(key: string) {
   const dateParams = getDateParams()
-  const url = buildGatewayUrl('/v1/usage') + (dateParams ? '?' + dateParams : '')
-  const res = await fetch(url, {
-    headers: { 'Authorization': 'Bearer ' + key },
-  })
+  const url = '/v1/usage' + (dateParams ? '?' + dateParams : '')
+  const res = await gatewayFetch(url, key)
   if (!res.ok) {
     const body = await res.json().catch(() => null)
     const msg = body?.error?.message || body?.message || `${t('keyUsage.queryFailed')} (${res.status})`
