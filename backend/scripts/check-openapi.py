@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the offline A0 contract gate; observe exports evidence, never accepts drift."""
+"""Run the offline A0+A1 contract gate; observe exports evidence, never accepts drift."""
 import argparse
 import os
 from pathlib import Path

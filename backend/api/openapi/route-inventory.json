@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "baseline": "0025450b1d836ea6b4bcdbbbb411729bccd54eca",
+  "baseline": "322aa2d1c9e61ec078a81d65cd65fe0a9236b497",
   "bootstrap": [
     {
       "method": "GET",
@@ -2034,9 +2034,9 @@
       "path": "/api/v1/admin/system/version",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A1 complete JSON contract and real SetupRouter handler/middleware fixtures; synthetic memory dependencies, no external I/O."
     },
     {
       "method": "GET",
@@ -2626,11 +2626,11 @@
     {
       "method": "GET",
       "path": "/api/v1/settings/public",
-      "authentication": "handler-policy-unreviewed",
+      "authentication": "public",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A1 complete JSON contract and real SetupRouter handler/middleware fixtures; synthetic memory dependencies, no external I/O."
     },
     {
       "method": "GET",
