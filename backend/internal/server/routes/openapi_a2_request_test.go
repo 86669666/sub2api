@@ -1,10 +1,17 @@
 package routes_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 )
+
+// Request DTO int/int64 fields use encoding/json integer tokens. This is a
+// binding rule for the declared top-level request fields, not JSON Schema's
+// mathematical integer semantics. Numeric ranges remain in minimum/maximum.
+var openAPIGoIntegerToken = regexp.MustCompile(`^-?(0|[1-9][0-9]*)$`)
 
 // The only open object supported is a declared request DTO: production ignores
 // unknown JSON members. Responses and the document itself remain fail-closed.
@@ -85,7 +92,27 @@ func openAPIValidateRequest(op openAPIOperation, req *http.Request, pathValues m
 		closed[k] = v
 	}
 	closed["additionalProperties"] = false
-	return openAPIValidateValue(closed, known)
+	if err := openAPIValidateValue(closed, known); err != nil {
+		return err
+	}
+	for name, value := range known {
+		field, ok := props[name].(map[string]any)
+		if !ok {
+			return fmt.Errorf("unvalidated request field %s", name)
+		}
+		typ, _, err := openAPISchemaType(field)
+		if err != nil {
+			return err
+		}
+		if typ != "integer" || value == nil {
+			continue
+		}
+		number, ok := value.(json.Number)
+		if !ok || !openAPIGoIntegerToken.MatchString(number.String()) {
+			return fmt.Errorf("%s: expected Go integer JSON token without decimal point or exponent", name)
+		}
+	}
+	return nil
 }
 func openAPIA2Operation(key string) bool {
 	switch key {

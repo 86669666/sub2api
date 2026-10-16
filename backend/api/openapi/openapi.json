@@ -7,7 +7,7 @@
   },
   "x-contract-scope": "normal-mode A0+A1+A2 partial",
   "x-source-baseline": "5fa7524945dfcbfac8906621a327fe3e511d3195",
-  "x-schema-validation-profile": "a2-typed-map-request-v3",
+  "x-schema-validation-profile": "a2-typed-map-request-v4",
   "paths": {
     "/health": {
       "get": {
@@ -2633,7 +2633,7 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "JSON decoded by production Gin/encoding/json binding: unknown fields ignored; null pointer fields mean unset. The offline contract checker rejects ambiguous duplicate members, malformed UTF-8 and trailing values, while production binding may accept these; this is a tooling integrity rule, not a claimed ingress rejection. Numeric limits finite/nonnegative. PUT resets are opt-in; null IP arrays unchanged, [] clears.",
+          "description": "JSON decoded by production Gin/encoding/json binding: unknown fields ignored; null pointer fields mean unset. The offline contract checker rejects ambiguous duplicate members, malformed UTF-8 and trailing values, while production binding may accept these; this is a tooling integrity rule, not a claimed ingress rejection. Numeric limits finite/nonnegative. PUT resets are opt-in; null IP arrays unchanged, [] clears. Declared integer DTO fields additionally require plain JSON integer tokens: 11.0 and 11e0 do not bind to Go int/int64 even though JSON Schema treats them as integers. The request checker enforces this binding restriction separately from schema validation. Integer ranges target the published amd64/arm64 builds (64-bit Go int); custom 32-bit builds are outside this contract.",
           "content": {
             "application/json": {
               "schema": {
@@ -2648,7 +2648,10 @@
                     "type": [
                       "integer",
                       "null"
-                    ]
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807,
+                    "description": "Nullable signed int64; plain integer JSON token only (no decimal point or exponent). Numeric range is a binding limit, not group existence or authorization."
                   },
                   "custom_key": {
                     "type": [
@@ -2690,7 +2693,9 @@
                       "integer",
                       "null"
                     ],
-                    "minimum": 1
+                    "minimum": 1,
+                    "maximum": 9223372036854775807,
+                    "description": "Nullable positive Go int on published amd64/arm64 builds (64-bit); plain integer JSON token only (no decimal point or exponent). The maximum is a binding limit, not a new business expiry cap or guarantee about extreme resulting dates."
                   },
                   "rate_limit_5h": {
                     "type": [
@@ -4453,7 +4458,7 @@
         ],
         "requestBody": {
           "required": true,
-          "description": "JSON decoded by production Gin/encoding/json binding: unknown fields ignored; null pointer fields mean unset. The offline contract checker rejects ambiguous duplicate members, malformed UTF-8 and trailing values, while production binding may accept these; this is a tooling integrity rule, not a claimed ingress rejection. Numeric limits finite/nonnegative. PUT resets are opt-in; null IP arrays unchanged, [] clears.",
+          "description": "JSON decoded by production Gin/encoding/json binding: unknown fields ignored; null pointer fields mean unset. The offline contract checker rejects ambiguous duplicate members, malformed UTF-8 and trailing values, while production binding may accept these; this is a tooling integrity rule, not a claimed ingress rejection. Numeric limits finite/nonnegative. PUT resets are opt-in; null IP arrays unchanged, [] clears. Declared integer DTO fields additionally require plain JSON integer tokens: 11.0 and 11e0 do not bind to Go int/int64 even though JSON Schema treats them as integers. The request checker enforces this binding restriction separately from schema validation. Integer ranges target the published amd64/arm64 builds (64-bit Go int); custom 32-bit builds are outside this contract.",
           "content": {
             "application/json": {
               "schema": {
@@ -4471,7 +4476,9 @@
                       "integer",
                       "null"
                     ],
-                    "description": "Omitted/null means unchanged; cannot clear binding using null."
+                    "description": "Omitted/null means unchanged; cannot clear binding using null. Nullable signed int64; plain integer JSON token only (no decimal point or exponent). Numeric range is a binding limit, not group existence or authorization.",
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807
                   },
                   "ip_whitelist": {
                     "type": [

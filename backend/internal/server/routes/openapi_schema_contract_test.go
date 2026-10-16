@@ -105,7 +105,7 @@ func openAPISecurityKey(requirements []map[string][]string) string {
 	return strings.Join(alternatives, "|")
 }
 func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) error {
-	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2 partial" || doc.Profile != "a2-typed-map-request-v3" {
+	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2 partial" || doc.Profile != "a2-typed-map-request-v4" {
 		return fmt.Errorf("invalid OAS/version/scope/profile metadata")
 	}
 	if len(doc.Paths) == 0 {
