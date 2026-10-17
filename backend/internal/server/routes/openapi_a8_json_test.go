@@ -49,7 +49,8 @@ func openAPIA8JSONValue(v any) error {
 }
 func TestOpenAPIA8FreeformJSON(t *testing.T) {
 	doc, _ := openAPILoad(t)
-	s := doc.Paths["/api/v1/admin/channel-monitors"]["post"].RequestBody.Content["application/json"].Schema["properties"].(map[string]any)["body_override"].(map[string]any)
+	props := openAPIA5Map(t, doc.Paths["/api/v1/admin/channel-monitors"]["post"].RequestBody.Content["application/json"].Schema["properties"])
+	s := openAPIA5Map(t, props["body_override"])
 	if !openAPIA8FreeformMap(s) {
 		t.Fatal("missing explicit freeform schema")
 	}

@@ -267,7 +267,9 @@ func TestOpenAPIA8SyntheticProbeResponseCodec(t *testing.T) {
 		rec := httptest.NewRecorder()
 		rec.Header().Set("Content-Type", "application/json")
 		rec.WriteHeader(200)
-		rec.Body.WriteString(`{"code":0,"message":"success","data":{"results":[{"model":"synthetic","status":"` + status + `","latency_ms":25,"ping_latency_ms":null,"message":"synthetic codec only","checked_at":"2035-01-02T03:04:05Z"}]}}`)
+		if _, err := rec.Body.WriteString(`{"code":0,"message":"success","data":{"results":[{"model":"synthetic","status":"` + status + `","latency_ms":25,"ping_latency_ms":null,"message":"synthetic codec only","checked_at":"2035-01-02T03:04:05Z"}]}}`); err != nil {
+			t.Fatal(err)
+		}
 		if e := openAPIValidateResponse(op, rec); e != nil {
 			t.Fatal(e)
 		}
@@ -275,7 +277,9 @@ func TestOpenAPIA8SyntheticProbeResponseCodec(t *testing.T) {
 	rec := httptest.NewRecorder()
 	rec.Header().Set("Content-Type", "application/json")
 	rec.WriteHeader(200)
-	rec.Body.WriteString(`{"code":0,"message":"success","data":{"results":[{"model":"synthetic","status":"unknown","latency_ms":null,"ping_latency_ms":null,"message":"synthetic","checked_at":"2035-01-02T03:04:05Z"}]}}`)
+	if _, err := rec.Body.WriteString(`{"code":0,"message":"success","data":{"results":[{"model":"synthetic","status":"unknown","latency_ms":null,"ping_latency_ms":null,"message":"synthetic","checked_at":"2035-01-02T03:04:05Z"}]}}`); err != nil {
+		t.Fatal(err)
+	}
 	if openAPIValidateResponse(op, rec) == nil {
 		t.Fatal("invalid probe status accepted")
 	}
