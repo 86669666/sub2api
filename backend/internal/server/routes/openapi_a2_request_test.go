@@ -100,16 +100,8 @@ func openAPIValidateRequest(op openAPIOperation, req *http.Request, pathValues m
 		if !ok {
 			return fmt.Errorf("unvalidated request field %s", name)
 		}
-		typ, _, err := openAPISchemaType(field)
-		if err != nil {
-			return err
-		}
-		if typ != "integer" || value == nil {
-			continue
-		}
-		number, ok := value.(json.Number)
-		if !ok || !openAPIGoIntegerToken.MatchString(number.String()) {
-			return fmt.Errorf("%s: expected Go integer JSON token without decimal point or exponent", name)
+		if err := openAPIValidateRequestIntegerTokens(field, value); err != nil {
+			return fmt.Errorf("%s: %w", name, err)
 		}
 	}
 	return nil
@@ -122,3 +114,37 @@ func openAPIA2Operation(key string) bool {
 	return false
 }
 func openAPIA2URL(path, id string) string { return strings.ReplaceAll(path, "{id}", id) }
+
+// Request DTO arrays of Go integers retain the same binding restriction as
+// scalar fields. Null elements bind the zero value; schema bounds remain separate.
+func openAPIValidateRequestIntegerTokens(schema map[string]any, value any) error {
+	if value == nil {
+		return nil
+	}
+	typ, _, err := openAPISchemaType(schema)
+	if err != nil {
+		return err
+	}
+	switch typ {
+	case "integer":
+		n, ok := value.(json.Number)
+		if !ok || !openAPIGoIntegerToken.MatchString(n.String()) {
+			return fmt.Errorf("expected Go integer JSON token without decimal point or exponent")
+		}
+	case "array":
+		items, ok := schema["items"].(map[string]any)
+		if !ok {
+			return fmt.Errorf("unvalidated array items")
+		}
+		values, ok := value.([]any)
+		if !ok {
+			return fmt.Errorf("expected array")
+		}
+		for _, v := range values {
+			if err := openAPIValidateRequestIntegerTokens(items, v); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}

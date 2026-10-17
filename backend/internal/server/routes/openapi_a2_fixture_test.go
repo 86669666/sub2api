@@ -283,6 +283,8 @@ func (r *openAPIA2Settings) SetMultiple(_ context.Context, values map[string]str
 }
 
 type openAPIA2Fixture struct {
+	configure func(*handler.Handlers, *config.Config, *service.SettingService)
+
 	a1                    *openAPIA1Fixture
 	keys                  *openAPIA2Keys
 	groups                *openAPIA2Groups
@@ -343,6 +345,9 @@ func (f *openAPIA2Fixture) router(t *testing.T) *gin.Engine {
 	auth := service.NewAuthService(nil, f.a1.users, nil, f.a1.refresh, cfg, settings, nil, nil, nil, nil, nil, nil, nil)
 	h := openAPIHandlers(t)
 	h.APIKey = handler.NewAPIKeyHandler(service.NewAPIKeyService(f.keys, f.a1.users, f.groups, f.subs, f.rates, f.cache, cfg))
+	if f.configure != nil {
+		f.configure(h, cfg, settings)
+	}
 	icfg := service.DefaultIdempotencyConfig()
 	icfg.ObserveOnly = !f.enforceIdem
 	previous := service.DefaultIdempotencyCoordinator()

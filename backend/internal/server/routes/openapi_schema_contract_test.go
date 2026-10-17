@@ -105,7 +105,7 @@ func openAPISecurityKey(requirements []map[string][]string) string {
 	return strings.Join(alternatives, "|")
 }
 func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) error {
-	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2 partial" || doc.Profile != "a2-typed-map-request-v4" {
+	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2+A3 partial" || doc.Profile != "a3-usage-request-v5" {
 		return fmt.Errorf("invalid OAS/version/scope/profile metadata")
 	}
 	if len(doc.Paths) == 0 {
@@ -301,7 +301,7 @@ func openAPICheckSchema(schema map[string]any) error {
 	}
 	for key := range schema {
 		switch key {
-		case "type", "properties", "required", "additionalProperties", "const", "description", "items", "enum", "minimum", "maximum", "minLength", "maxLength", "format", "propertyNames":
+		case "type", "properties", "required", "additionalProperties", "const", "description", "items", "enum", "minimum", "maximum", "minLength", "maxLength", "format", "propertyNames", "maxItems":
 		default:
 			return fmt.Errorf("unsupported A0 schema keyword: %s", key)
 		}
@@ -313,6 +313,12 @@ func openAPICheckSchema(schema map[string]any) error {
 	if d, exists := schema["description"]; exists {
 		if _, ok := d.(string); !ok {
 			return fmt.Errorf("description must be a string")
+		}
+	}
+	if v, exists := schema["maxItems"]; exists {
+		n, err := openAPIExactNumber(v)
+		if typ != "array" || err != nil || !n.IsInt() || n.Sign() < 0 || !n.Num().IsInt64() {
+			return fmt.Errorf("invalid array length bound")
 		}
 	}
 	if typ != "array" {
@@ -434,6 +440,7 @@ func openAPICheckSchema(schema map[string]any) error {
 				copy[k] = v
 			}
 		}
+
 		for i, v := range values {
 			if err := openAPIValidateValue(copy, v); err != nil {
 				return fmt.Errorf("invalid enum: %w", err)
@@ -626,6 +633,12 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 		if !ok {
 			return fmt.Errorf("expected array")
 		}
+		if bound, exists := schema["maxItems"]; exists {
+			n, err := openAPIExactNumber(bound)
+			if err != nil || !n.IsInt() || !n.Num().IsInt64() || int64(len(values)) > n.Num().Int64() {
+				return fmt.Errorf("array exceeds maxItems")
+			}
+		}
 		for i, v := range values {
 			if err := openAPIValidateValue(items, v); err != nil {
 				return fmt.Errorf("item %d: %w", i, err)
@@ -787,6 +800,10 @@ func TestOpenAPIResponses(t *testing.T) {
 		for method, op := range methods {
 			t.Run(method+" "+path, func(t *testing.T) {
 				key := strings.ToUpper(method) + " " + path
+				if openAPIA3Operation(key) {
+					openAPIA3VerifyResponses(t, method, path, op)
+					return
+				}
 				if openAPIA2Operation(key) {
 					openAPIA2VerifyResponses(t, method, path, op)
 					return
