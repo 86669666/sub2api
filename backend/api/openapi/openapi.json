@@ -37548,7 +37548,7 @@
             }
           },
           "401": {
-            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "description": "Administrator authentication failed: missing/malformed credentials, invalid admin API key or JWT, expired token, missing/inactive user, revoked token or bound-session mismatch. Authentication precedes the channel operation; x-api-key takes precedence when supplied.",
             "content": {
               "application/json": {
                 "schema": {
@@ -37665,7 +37665,7 @@
             }
           },
           "429": {
-            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "description": "Configured panel Global rate limit exceeded for the authenticated user. Retry-After gives positive seconds until retry; this route has no Heavy, API-key creation or failed-attempt limiter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -37698,7 +37698,7 @@
             }
           },
           "500": {
-            "description": "Authentication storage failure or service/repository failure. Internal error details are not returned.",
+            "description": "Authentication user/settings storage failure or compliance-acknowledgement storage failure. Internal error details are not returned. Channel list/count or associated-data repository failure also returns500.",
             "content": {
               "application/json": {
                 "schema": {
@@ -38519,7 +38519,7 @@
             }
           },
           "401": {
-            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "description": "Administrator authentication failed: missing/malformed credentials, invalid admin API key or JWT, expired token, missing/inactive user, revoked token or bound-session mismatch. Authentication precedes the channel operation; x-api-key takes precedence when supplied.",
             "content": {
               "application/json": {
                 "schema": {
@@ -38636,7 +38636,7 @@
             }
           },
           "429": {
-            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "description": "Configured panel Global rate limit exceeded for the authenticated user. Retry-After gives positive seconds until retry; this route has no Heavy, API-key creation or failed-attempt limiter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -38669,7 +38669,7 @@
             }
           },
           "500": {
-            "description": "Authentication storage failure or service/repository failure. Internal error details are not returned.",
+            "description": "Authentication user/settings storage failure or compliance-acknowledgement storage failure. Internal error details are not returned. Name/group conflict lookup, create transaction or post-create reread storage failure also returns500; a reread failure can occur after the create committed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -38710,7 +38710,7 @@
             }
           },
           "400": {
-            "description": "Invalid path int64, JSON binding, missing/unsupported query or service validation.",
+            "description": "JSON binding failure or channel configuration validation: required/bounded name, billing source, pricing rules/scopes, model/mapping conflicts, prices, intervals, reasoning multipliers or time schedules. There is no path-ID or required-query validation on create.",
             "content": {
               "application/json": {
                 "schema": {
@@ -38780,7 +38780,7 @@
             }
           },
           "404": {
-            "description": "Post-create reread found no row, for example after concurrent deletion; the create transaction already committed.",
+            "description": "Post-create reread found no channel (CHANNEL_NOT_FOUND), for example after concurrent deletion; the create transaction already committed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -40241,7 +40241,7 @@
             }
           },
           "401": {
-            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "description": "Administrator authentication failed: missing/malformed credentials, invalid admin API key or JWT, expired token, missing/inactive user, revoked token or bound-session mismatch. Authentication precedes the channel operation; x-api-key takes precedence when supplied.",
             "content": {
               "application/json": {
                 "schema": {
@@ -40358,7 +40358,7 @@
             }
           },
           "429": {
-            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "description": "Configured panel Global rate limit exceeded for the authenticated user. Retry-After gives positive seconds until retry; this route has no Heavy, API-key creation or failed-attempt limiter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -40391,7 +40391,7 @@
             }
           },
           "500": {
-            "description": "Authentication storage failure or service/repository failure. Internal error details are not returned.",
+            "description": "Authentication user/settings storage failure or compliance-acknowledgement storage failure. Internal error details are not returned. Channel or associated-data read failure also returns500.",
             "content": {
               "application/json": {
                 "schema": {
@@ -40432,7 +40432,7 @@
             }
           },
           "400": {
-            "description": "Invalid path int64, JSON binding, missing/unsupported query or service validation.",
+            "description": "Path id cannot be parsed as a signed decimal int64 (including overflow). Zero and negative IDs reach the repository and normally return404; this GET does not bind a JSON body or require query parameters.",
             "content": {
               "application/json": {
                 "schema": {
@@ -40467,7 +40467,7 @@
             }
           },
           "404": {
-            "description": "Channel not found, including delete with no affected row.",
+            "description": "Channel lookup found no row (CHANNEL_NOT_FOUND), including normally absent zero or negative IDs.",
             "content": {
               "application/json": {
                 "schema": {
@@ -41229,7 +41229,7 @@
             }
           },
           "401": {
-            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "description": "Administrator authentication failed: missing/malformed credentials, invalid admin API key or JWT, expired token, missing/inactive user, revoked token or bound-session mismatch. Authentication precedes the channel operation; x-api-key takes precedence when supplied.",
             "content": {
               "application/json": {
                 "schema": {
@@ -41346,7 +41346,7 @@
             }
           },
           "429": {
-            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "description": "Configured panel Global rate limit exceeded for the authenticated user. Retry-After gives positive seconds until retry; this route has no Heavy, API-key creation or failed-attempt limiter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -41379,7 +41379,7 @@
             }
           },
           "500": {
-            "description": "Authentication storage failure or service/repository failure. Internal error details are not returned.",
+            "description": "Authentication user/settings storage failure or compliance-acknowledgement storage failure. Internal error details are not returned. Initial channel read, name/group conflict lookup, update transaction or post-update reread storage failure also returns500; a reread failure can occur after the update committed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -41420,7 +41420,7 @@
             }
           },
           "400": {
-            "description": "Invalid path int64, JSON binding, missing/unsupported query or service validation.",
+            "description": "Invalid signed decimal int64 path id, JSON binding failure, or updated channel configuration validation (name/status/billing source, pricing rules/scopes, model/mapping conflicts, prices, intervals, reasoning multipliers or time schedules). No required query parameter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -41455,7 +41455,7 @@
             }
           },
           "404": {
-            "description": "Channel not found, including delete with no affected row.",
+            "description": "Channel not found during the initial read, zero affected rows during the update, or no row during the post-update reread (CHANNEL_NOT_FOUND). The last case can follow a committed update.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42317,7 +42317,7 @@
             }
           },
           "401": {
-            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "description": "Administrator authentication failed: missing/malformed credentials, invalid admin API key or JWT, expired token, missing/inactive user, revoked token or bound-session mismatch. Authentication precedes the channel operation; x-api-key takes precedence when supplied.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42434,7 +42434,7 @@
             }
           },
           "429": {
-            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "description": "Configured panel Global rate limit exceeded for the authenticated user. Retry-After gives positive seconds until retry; this route has no Heavy, API-key creation or failed-attempt limiter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42467,7 +42467,7 @@
             }
           },
           "500": {
-            "description": "Authentication storage failure or service/repository failure. Internal error details are not returned.",
+            "description": "Authentication user/settings storage failure or compliance-acknowledgement storage failure. Internal error details are not returned. Delete statement failure also returns500. Group-ID prefetch and post-delete cache rebuild failures are logged without replacing an otherwise successful delete response.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42508,7 +42508,7 @@
             }
           },
           "400": {
-            "description": "Invalid path int64, JSON binding, missing/unsupported query or service validation.",
+            "description": "Path id cannot be parsed as a signed decimal int64 (including overflow). Zero and negative IDs reach the repository and normally return404; the DELETE handler does not bind a JSON body or validate query parameters.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42543,7 +42543,7 @@
             }
           },
           "404": {
-            "description": "Channel not found, including delete with no affected row.",
+            "description": "The delete statement affected zero channel rows (CHANNEL_NOT_FOUND), including an already deleted or otherwise absent ID.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42753,7 +42753,7 @@
             }
           },
           "401": {
-            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "description": "Administrator authentication failed: missing/malformed credentials, invalid admin API key or JWT, expired token, missing/inactive user, revoked token or bound-session mismatch. Authentication precedes the channel operation; x-api-key takes precedence when supplied.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42870,7 +42870,7 @@
             }
           },
           "429": {
-            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "description": "Configured panel Global rate limit exceeded for the authenticated user. Retry-After gives positive seconds until retry; this route has no Heavy, API-key creation or failed-attempt limiter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42903,7 +42903,7 @@
             }
           },
           "500": {
-            "description": "Authentication storage failure or service/repository failure. Internal error details are not returned.",
+            "description": "Authentication user/settings storage failure or compliance-acknowledgement storage failure. Internal error details are not returned. Model-pricing lookup failure is represented by200 found:false, not500.",
             "content": {
               "application/json": {
                 "schema": {
@@ -42944,7 +42944,7 @@
             }
           },
           "400": {
-            "description": "Invalid path int64, JSON binding, missing/unsupported query or service validation.",
+            "description": "The first model query value is absent or empty after trimming (MISSING_PARAMETER, metadata.param=model). Unknown nonempty models return200 found:false; no path-ID or JSON-body binding.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43050,7 +43050,7 @@
             }
           },
           "401": {
-            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "description": "Administrator authentication failed: missing/malformed credentials, invalid admin API key or JWT, expired token, missing/inactive user, revoked token or bound-session mismatch. Authentication precedes the channel operation; x-api-key takes precedence when supplied.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43167,7 +43167,7 @@
             }
           },
           "429": {
-            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "description": "Configured panel Global rate limit exceeded for the authenticated user. Retry-After gives positive seconds until retry; this route has no Heavy, API-key creation or failed-attempt limiter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43200,7 +43200,7 @@
             }
           },
           "500": {
-            "description": "Authentication storage failure or service/repository failure. Internal error details are not returned.",
+            "description": "Authentication user/settings storage failure or compliance-acknowledgement storage failure. Internal error details are not returned. The handler only reads the current in-memory catalog and has no remote refresh or catalog error response.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43241,7 +43241,7 @@
             }
           },
           "400": {
-            "description": "Invalid path int64, JSON binding, missing/unsupported query or service validation.",
+            "description": "The first platform query value is absent/empty after trimming (MISSING_PARAMETER), or its normalized name has no registered LiteLLM provider (UNSUPPORTED_PLATFORM). metadata.param=platform; no path-ID or JSON-body binding.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43618,7 +43618,7 @@
             }
           },
           "401": {
-            "description": "JWT authentication or bound-session failure.",
+            "description": "JWT authentication or bound-session failure before the handler: missing/malformed credentials, invalid/expired token, missing/inactive user, revoked token or session binding mismatch. A missing user during this authentication lookup is401 USER_NOT_FOUND; the later available-groups user lookup has a separate404 response.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43667,7 +43667,7 @@
             }
           },
           "403": {
-            "description": "Backend mode, ownership or group/count authorization failure.",
+            "description": "Backend-mode restriction blocks an ordinary authenticated user before the feature switch and available-groups lookup. Group visibility filters the successful result; this route does not return ownership or group-count authorization errors.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43702,7 +43702,7 @@
             }
           },
           "429": {
-            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "description": "Configured panel Global rate limit exceeded for the authenticated user. Retry-After gives positive seconds until retry; this route has no Heavy, API-key creation or failed-attempt limiter.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43752,7 +43752,7 @@
             }
           },
           "500": {
-            "description": "Authentication storage failure or service/repository failure. Internal error details are not returned.",
+            "description": "Generic user lookup failure during JWT authentication (string INTERNAL_ERROR), or a generic failure after authentication while loading the user again, active groups/subscriptions or available channels (numeric500). Internal error details are not returned. Failure reading the feature switch instead returns200 with an empty array.",
             "content": {
               "application/json": {
                 "schema": {
@@ -43786,6 +43786,43 @@
                   "required": [
                     "code",
                     "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Authentication succeeded, but the subsequent APIKeyService.GetAvailableGroups user lookup returned USER_NOT_FOUND. The wrapped service error is preserved as numeric404; channel loading is not reached. With the feature disabled, this lookup is skipped and the authenticated request returns200 with an empty array.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "const": "USER_NOT_FOUND"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "reason"
                   ],
                   "additionalProperties": false
                 }

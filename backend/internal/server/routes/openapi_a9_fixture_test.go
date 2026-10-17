@@ -144,14 +144,15 @@ func (r *openAPIA9Repo) GetGroupPlatforms(_ context.Context, ids []int64) (map[i
 }
 
 type openAPIA9Fixture struct {
-	a1           *openAPIA1Fixture
-	repo         *openAPIA9Repo
-	groups       *openAPIA2Groups
-	subs         *openAPIA2Subscriptions
-	audit        *openAPIA6Audit
-	auditService *service.AuditLogService
-	repoOverride service.ChannelRepository
-	billing      *service.BillingService
+	a1             *openAPIA1Fixture
+	repo           *openAPIA9Repo
+	groups         *openAPIA2Groups
+	subs           *openAPIA2Subscriptions
+	audit          *openAPIA6Audit
+	auditService   *service.AuditLogService
+	repoOverride   service.ChannelRepository
+	billing        *service.BillingService
+	availableUsers *openAPIA9AvailabilityUsers
 }
 
 func openAPIA9NewFixture(t *testing.T) *openAPIA9Fixture {
@@ -200,7 +201,11 @@ func (f *openAPIA9Fixture) router(t *testing.T) *gin.Engine {
 		billing = service.NewBillingService(cfg, pricing)
 	}
 	svc := service.NewChannelService(repo, f.groups, nil, pricing, nil)
-	keys := service.NewAPIKeyService(nil, f.a1.users, f.groups, f.subs, nil, nil, nil)
+	keyUsers := service.UserRepository(f.a1.users)
+	if f.availableUsers != nil {
+		keyUsers = f.availableUsers
+	}
+	keys := service.NewAPIKeyService(nil, keyUsers, f.groups, f.subs, nil, nil, nil)
 	h := openAPIHandlers(t)
 	h.Admin.Channel = admin.NewChannelHandler(svc, billing, pricing)
 	h.AvailableChannel = handler.NewAvailableChannelHandler(svc, keys, settings)

@@ -58,6 +58,7 @@ func openAPIA9Cases(method, path string) []openAPIA9Case {
 		f.a1.counter.count = 2
 	}}}
 	if user {
+		cs = append(cs, openAPIA9PostAuthUserCases()...)
 		cs = append(cs, openAPIA9Case{name: "ordinary user", status: 200, change: func(f *openAPIA9Fixture) { f.a1.users.user.Role = service.RoleUser }}, openAPIA9Case{name: "backend blocked", status: 403, change: func(f *openAPIA9Fixture) {
 			f.a1.users.user.Role = service.RoleUser
 			f.a1.settings.values[service.SettingKeyBackendModeEnabled] = "true"
