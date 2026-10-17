@@ -24297,7 +24297,7 @@
       "get": {
         "operationId": "getAdminMonitorV2Config",
         "summary": "Get admin monitor V2 config",
-        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled required; config read/write works in mode v1 and v2, including disabled stored config. GET returns stored configuration; SQL GetConfig defaults/normalizes only thresholds and nil ignored categories; missing SQL row is 500. ",
+        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled required; config read/write works in mode v1 and v2, including disabled stored config. GET returns stored configuration; SQL GetConfig defaults/normalizes only thresholds and nil ignored categories; missing SQL row is 500.",
         "security": [
           {
             "BearerAuth": []
@@ -24311,7 +24311,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful JSON response.",
+            "description": "Stored admin configuration, including policy fields and available update metadata. SQL reads default/normalize health thresholds and nil ignored categories.",
             "content": {
               "application/json": {
                 "schema": {
@@ -24497,7 +24497,7 @@
             }
           },
           "403": {
-            "description": "Stored non-admin role (string FORBIDDEN), or feature/config disabled or wrong mode (numeric 403 with CHANNEL_MONITOR_DISABLED or CHANNEL_MONITOR_MODE_MISMATCH).",
+            "description": "Stored non-admin JWT role (string FORBIDDEN), or feature disabled (numeric 403 with CHANNEL_MONITOR_DISABLED). Mode v1 and disabled stored configuration do not block this endpoint.",
             "content": {
               "application/json": {
                 "schema": {
@@ -24628,7 +24628,7 @@
             }
           },
           "500": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Authentication or compliance settings/storage failure, or configuration repository query, scan or decoding failure. Authentication middleware uses INTERNAL_ERROR; handler repository failures use numeric 500 and do not expose raw error text. A missing configuration SQL row is 500.",
             "content": {
               "application/json": {
                 "schema": {
@@ -24673,7 +24673,7 @@
       "put": {
         "operationId": "putAdminMonitorV2Config",
         "summary": "Put admin monitor V2 config",
-        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled required; config read/write works in mode v1 and v2, including disabled stored config. GET returns stored configuration; SQL GetConfig defaults/normalizes only thresholds and nil ignored categories; missing SQL row is 500. Full replacement DTO, not a patch. version is the optimistic expected version (omitted/null = 0). refresh_interval_seconds 0 becomes 300; only 60 or 300 otherwise. Positive group IDs deduplicate/sort. Platforms trim/lowercase, reject empty/duplicates, sort; models trim/deduplicate/sort case-sensitively. Ignored categories trim/lowercase, discard unknowns, deduplicate/sort. Thresholds default nonpositive minimum/error/latency inputs; minimum sample clamps 1..10000; error rates have no upper clamp; critical error rate is at least warning. Warning TTFT below target becomes target+1, critical is at least warning. Cache rates clamp 0..1 and critical cannot exceed warning. Weights default only if all three are nonpositive; otherwise no sum normalization. Input updated_by is replaced with authenticated subject; SQL owns returned updated_at, updated_by and version increment. Conflict 409, validation 400, repository failure 500. ",
+        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled required; config read/write works in mode v1 and v2, including disabled stored config. Full replacement DTO, not a patch. version is the optimistic expected version (omitted/null = 0). refresh_interval_seconds 0 becomes 300; only 60 or 300 otherwise. Positive group IDs deduplicate/sort. Platforms trim/lowercase, reject empty/duplicates, sort; models trim/deduplicate/sort case-sensitively. Ignored categories trim/lowercase, discard unknowns, deduplicate/sort. Thresholds default nonpositive minimum/error/latency inputs; minimum sample clamps 1..10000; error rates have no upper clamp; critical error rate is at least warning. Warning TTFT below target becomes target+1, critical is at least warning. Cache rates clamp 0..1 and critical cannot exceed warning. Weights default only if all three are nonpositive; otherwise no sum normalization. Input updated_by is replaced with authenticated subject; SQL owns returned updated_at, updated_by and version increment. Conflict 409, validation 400, repository failure 500.",
         "security": [
           {
             "BearerAuth": []
@@ -24687,7 +24687,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful JSON response.",
+            "description": "Updated admin configuration returned by the repository after normalization and optimistic version matching; SQL supplies the incremented version and update metadata.",
             "content": {
               "application/json": {
                 "schema": {
@@ -24873,7 +24873,7 @@
             }
           },
           "403": {
-            "description": "Stored non-admin role (string FORBIDDEN), or feature/config disabled or wrong mode (numeric 403 with CHANNEL_MONITOR_DISABLED or CHANNEL_MONITOR_MODE_MISMATCH).",
+            "description": "Stored non-admin JWT role (string FORBIDDEN), or feature disabled (numeric 403 with CHANNEL_MONITOR_DISABLED). Mode v1 and disabled stored configuration do not block this endpoint.",
             "content": {
               "application/json": {
                 "schema": {
@@ -25004,7 +25004,7 @@
             }
           },
           "500": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Authentication or compliance settings/storage failure, or configuration repository query, scan or decoding failure. Authentication middleware uses INTERNAL_ERROR; handler repository failures use numeric 500 and do not expose raw error text.",
             "content": {
               "application/json": {
                 "schema": {
@@ -25045,7 +25045,7 @@
             }
           },
           "400": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Invalid JSON binding or configuration validation failure, including invalid refresh interval, nonpositive group IDs, or empty/duplicate normalized platforms. Rejected before the configuration repository update.",
             "content": {
               "application/json": {
                 "schema": {
@@ -25080,7 +25080,7 @@
             }
           },
           "409": {
-            "description": "Optimistic expected version did not match; SQL no rows maps to conflict.",
+            "description": "Optimistic expected version did not match; UPDATE returning no rows maps to configuration conflict.",
             "content": {
               "application/json": {
                 "schema": {
@@ -25326,7 +25326,7 @@
       "get": {
         "operationId": "getAdminMonitorV2Dimensions",
         "summary": "Get admin monitor V2 dimensions",
-        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range and group_by use first query value, trim for matching and remain case-sensitive. Default group_by is platform_group. Hide-throughput/hide-ranking settings do not redact admin results. Counters, upstream diagnostics, identity and configuration remain intact. Users returns top ten plus authenticated self when outside top ten; missing self appends rank=0 zero-metrics row. ",
+        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range uses the first query value, trims for matching and is case-sensitive. Hide-throughput/hide-ranking settings do not redact admin results. Admin dimension catalog with full request counts. Selected platform/group/model filters are parsed but do not narrow the catalog; repository time, coverage and configured scope still apply.",
         "security": [
           {
             "BearerAuth": []
@@ -25398,7 +25398,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Actual user-route JSON projection.",
+            "description": "Admin dimension catalog with full request counts. Selected platform/group/model filters are parsed but do not narrow the catalog; repository time, coverage and configured scope still apply.",
             "content": {
               "application/json": {
                 "schema": {
@@ -25670,7 +25670,7 @@
             }
           },
           "500": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Authentication or compliance settings/storage failure, or configuration/analytics repository failure. Authentication middleware uses INTERNAL_ERROR; handler repository failures use numeric 500 and do not expose raw error text.",
             "content": {
               "application/json": {
                 "schema": {
@@ -25711,7 +25711,7 @@
             }
           },
           "400": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Invalid range or group_id query token; group IDs must be positive signed int64 values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -25752,7 +25752,7 @@
       "get": {
         "operationId": "getAdminMonitorV2Snapshot",
         "summary": "Get admin monitor V2 snapshot",
-        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range and group_by use first query value, trim for matching and remain case-sensitive. Default group_by is platform_group. Hide-throughput/hide-ranking settings do not redact admin results. Counters, upstream diagnostics, identity and configuration remain intact. Users returns top ten plus authenticated self when outside top ten; missing self appends rank=0 zero-metrics row. ",
+        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range uses the first query value, trims for matching and is case-sensitive. Hide-throughput/hide-ranking settings do not redact admin results. Admin snapshot with full configuration, coverage, metrics, health and trend; counters and optional upstream metrics are not redacted.",
         "security": [
           {
             "BearerAuth": []
@@ -25824,7 +25824,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Actual user-route JSON projection.",
+            "description": "Admin snapshot with full configuration, coverage, metrics, health and trend; counters and optional upstream metrics are not redacted.",
             "content": {
               "application/json": {
                 "schema": {
@@ -26741,7 +26741,7 @@
             }
           },
           "500": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Authentication or compliance settings/storage failure, or configuration/analytics repository failure. Authentication middleware uses INTERNAL_ERROR; handler repository failures use numeric 500 and do not expose raw error text.",
             "content": {
               "application/json": {
                 "schema": {
@@ -26782,7 +26782,7 @@
             }
           },
           "400": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Invalid range or group_id query token; group IDs must be positive signed int64 values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -26823,7 +26823,7 @@
       "get": {
         "operationId": "getAdminMonitorV2Models",
         "summary": "Get admin monitor V2 models",
-        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range and group_by use first query value, trim for matching and remain case-sensitive. Default group_by is platform_group. Hide-throughput/hide-ranking settings do not redact admin results. Counters, upstream diagnostics, identity and configuration remain intact. Users returns top ten plus authenticated self when outside top ten; missing self appends rank=0 zero-metrics row. ",
+        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range uses the first query value, trims for matching and is case-sensitive. Hide-throughput/hide-ranking settings do not redact admin results. Admin model rows with full metrics and health, plus coverage; counters and optional upstream metrics are not redacted.",
         "security": [
           {
             "BearerAuth": []
@@ -26895,7 +26895,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Actual user-route JSON projection.",
+            "description": "Admin model rows with full metrics and health, plus coverage; counters and optional upstream metrics are not redacted.",
             "content": {
               "application/json": {
                 "schema": {
@@ -27429,7 +27429,7 @@
             }
           },
           "500": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Authentication or compliance settings/storage failure, or configuration/analytics repository failure. Authentication middleware uses INTERNAL_ERROR; handler repository failures use numeric 500 and do not expose raw error text.",
             "content": {
               "application/json": {
                 "schema": {
@@ -27470,7 +27470,7 @@
             }
           },
           "400": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Invalid range or group_id query token; group IDs must be positive signed int64 values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -27511,7 +27511,7 @@
       "get": {
         "operationId": "getAdminMonitorV2Matrix",
         "summary": "Get admin monitor V2 matrix",
-        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range and group_by use first query value, trim for matching and remain case-sensitive. Default group_by is platform_group. Hide-throughput/hide-ranking settings do not redact admin results. Counters, upstream diagnostics, identity and configuration remain intact. Users returns top ten plus authenticated self when outside top ten; missing self appends rank=0 zero-metrics row. ",
+        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range uses the first query value, trims for matching and is case-sensitive. Group_by also uses the first value and trims for case-sensitive matching; default is platform_group. Hide-throughput/hide-ranking settings do not redact admin results. Admin grouped matrix with full row and bucket metrics, health and coverage; counters and optional upstream metrics are not redacted.",
         "security": [
           {
             "BearerAuth": []
@@ -27592,7 +27592,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Actual user-route JSON projection.",
+            "description": "Admin grouped matrix with full row and bucket metrics, health and coverage; counters and optional upstream metrics are not redacted.",
             "content": {
               "application/json": {
                 "schema": {
@@ -28403,7 +28403,7 @@
             }
           },
           "500": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Authentication or compliance settings/storage failure, or configuration/analytics repository failure. Authentication middleware uses INTERNAL_ERROR; handler repository failures use numeric 500 and do not expose raw error text.",
             "content": {
               "application/json": {
                 "schema": {
@@ -28444,7 +28444,7 @@
             }
           },
           "400": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Invalid range or group_id query token; group IDs must be positive signed int64 values. Invalid group_by also returns 400.",
             "content": {
               "application/json": {
                 "schema": {
@@ -28485,7 +28485,7 @@
       "get": {
         "operationId": "getAdminMonitorV2Errors",
         "summary": "Get admin monitor V2 errors",
-        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range and group_by use first query value, trim for matching and remain case-sensitive. Default group_by is platform_group. Hide-throughput/hide-ranking settings do not redact admin results. Counters, upstream diagnostics, identity and configuration remain intact. Users returns top ten plus authenticated self when outside top ten; missing self appends rank=0 zero-metrics row. ",
+        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range uses the first query value, trims for matching and is case-sensitive. Hide-throughput/hide-ranking settings do not redact admin results. Admin error breakdown with counts, rates, ignored flags and optional upstream diagnostic details.",
         "security": [
           {
             "BearerAuth": []
@@ -28557,7 +28557,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Actual user-route JSON projection.",
+            "description": "Admin error breakdown with counts, rates, ignored flags and optional upstream diagnostic details.",
             "content": {
               "application/json": {
                 "schema": {
@@ -28881,7 +28881,7 @@
             }
           },
           "500": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Authentication or compliance settings/storage failure, or configuration/analytics repository failure. Authentication middleware uses INTERNAL_ERROR; handler repository failures use numeric 500 and do not expose raw error text.",
             "content": {
               "application/json": {
                 "schema": {
@@ -28922,7 +28922,7 @@
             }
           },
           "400": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Invalid range or group_id query token; group IDs must be positive signed int64 values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -28963,7 +28963,7 @@
       "get": {
         "operationId": "getAdminMonitorV2Users",
         "summary": "Get admin monitor V2 users",
-        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range and group_by use first query value, trim for matching and remain case-sensitive. Default group_by is platform_group. Hide-throughput/hide-ranking settings do not redact admin results. Counters, upstream diagnostics, identity and configuration remain intact. Users returns top ten plus authenticated self when outside top ten; missing self appends rank=0 zero-metrics row. ",
+        "description": "Real admin JWT/API-key/upgrade authentication uses stored role and subject, active/token-version/session binding checks, global panel limiter, audit and compliance guard. No Heavy limiter is registered. JSON only; no SSE or pagination. Unlisted query fields do not change identity. Feature enabled, mode=v2 and enabled stored config required; all disabled/mode failures are 403. Admin bypasses AvailableGroups; configured repository scope still applies. Platform/model filters are case-sensitive; repeated/comma tokens trim, omit empty, deduplicate/sort. Positive int64 group IDs only. Range uses the first query value, trims for matching and is case-sensitive. Hide-throughput/hide-ranking settings do not redact admin results. Admin user ranking with available user IDs, email/usernames, full metrics and coverage. Top ten rows plus authenticated self when outside the top ten; missing self appends a rank=0 zero-metrics row.",
         "security": [
           {
             "BearerAuth": []
@@ -29035,7 +29035,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Actual user-route JSON projection.",
+            "description": "Admin user ranking with available user IDs, email/usernames, full metrics and coverage. Top ten rows plus authenticated self when outside the top ten; missing self appends a rank=0 zero-metrics row.",
             "content": {
               "application/json": {
                 "schema": {
@@ -29489,7 +29489,7 @@
             }
           },
           "500": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Authentication or compliance settings/storage failure, or configuration/analytics repository failure. Authentication middleware uses INTERNAL_ERROR; handler repository failures use numeric 500 and do not expose raw error text.",
             "content": {
               "application/json": {
                 "schema": {
@@ -29530,7 +29530,7 @@
             }
           },
           "400": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "description": "Invalid range or group_id query token; group IDs must be positive signed int64 values.",
             "content": {
               "application/json": {
                 "schema": {
