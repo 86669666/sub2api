@@ -108,7 +108,7 @@ func openAPISecurityKey(requirements []map[string][]string) string {
 	return strings.Join(alternatives, "|")
 }
 func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) error {
-	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2+A3+A4+A5+A6+A7+A8 partial" || doc.Profile != "a8-admin-monitors-json-map-v9" {
+	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2+A3+A4+A5+A6+A7+A8+A9 partial" || doc.Profile != "a9-channels-dto-v10" {
 		return fmt.Errorf("invalid OAS/version/scope/profile metadata")
 	}
 	if len(doc.Paths) == 0 {
@@ -299,12 +299,15 @@ func openAPISchemaType(schema map[string]any) (string, bool, error) {
 }
 
 func openAPICheckSchema(schema map[string]any) error {
+	if err := openAPIA9CheckAlternatives(schema); err != nil {
+		return err
+	}
 	if len(schema) == 0 {
 		return fmt.Errorf("empty schema is not coverage")
 	}
 	for key := range schema {
 		switch key {
-		case "type", "properties", "required", "additionalProperties", "const", "description", "items", "enum", "minimum", "maximum", "minLength", "maxLength", "format", "propertyNames", "maxItems", "x-freeform-json":
+		case "type", "properties", "required", "additionalProperties", "const", "description", "items", "enum", "minimum", "maximum", "minLength", "maxLength", "format", "propertyNames", "maxItems", "x-freeform-json", "oneOf":
 		default:
 			return fmt.Errorf("unsupported A0 schema keyword: %s", key)
 		}
@@ -538,6 +541,9 @@ func openAPIEqualValue(a, b any) bool {
 }
 
 func openAPIValidateValue(schema map[string]any, value any) error {
+	if err := openAPIA9ValidateAlternatives(schema, value); err != nil {
+		return err
+	}
 	typ, nullable, err := openAPISchemaType(schema)
 	if err != nil {
 		return err
@@ -812,6 +818,10 @@ func TestOpenAPIResponses(t *testing.T) {
 		for method, op := range methods {
 			t.Run(method+" "+path, func(t *testing.T) {
 				key := strings.ToUpper(method) + " " + path
+				if openAPIA9Operation(key) {
+					openAPIA9VerifyResponses(t, method, path, op)
+					return
+				}
 				if openAPIA8Operation(key) {
 					openAPIA8VerifyResponses(t, method, path, op)
 					return

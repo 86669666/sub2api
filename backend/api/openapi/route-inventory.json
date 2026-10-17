@@ -117,9 +117,9 @@
       "path": "/api/v1/admin/channels/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A9 complete channels module: admin CRUD, local pricing/catalog and user visibility; concrete DTO/auth/error contracts with offline runtime checks."
     },
     {
       "method": "DELETE",
@@ -927,36 +927,36 @@
       "path": "/api/v1/admin/channels",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A9 complete channels module: admin CRUD, local pricing/catalog and user visibility; concrete DTO/auth/error contracts with offline runtime checks."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channels/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A9 complete channels module: admin CRUD, local pricing/catalog and user visibility; concrete DTO/auth/error contracts with offline runtime checks."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channels/model-pricing",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A9 complete channels module: admin CRUD, local pricing/catalog and user visibility; concrete DTO/auth/error contracts with offline runtime checks."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channels/pricing/sync-models",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A9 complete channels module: admin CRUD, local pricing/catalog and user visibility; concrete DTO/auth/error contracts with offline runtime checks."
     },
     {
       "method": "GET",
@@ -2448,9 +2448,9 @@
       "path": "/api/v1/channels/available",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A9 complete channels module: admin CRUD, local pricing/catalog and user visibility; concrete DTO/auth/error contracts with offline runtime checks."
     },
     {
       "method": "GET",
@@ -3897,9 +3897,9 @@
       "path": "/api/v1/admin/channels",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A9 complete channels module: admin CRUD, local pricing/catalog and user visibility; concrete DTO/auth/error contracts with offline runtime checks."
     },
     {
       "method": "POST",
@@ -6030,9 +6030,9 @@
       "path": "/api/v1/admin/channels/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A9 complete channels module: admin CRUD, local pricing/catalog and user visibility; concrete DTO/auth/error contracts with offline runtime checks."
     },
     {
       "method": "PUT",
