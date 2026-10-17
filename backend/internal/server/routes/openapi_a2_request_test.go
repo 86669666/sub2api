@@ -102,6 +102,9 @@ func openAPIA2URL(path, id string) string { return strings.ReplaceAll(path, "{id
 // Request DTO arrays of Go integers retain the same binding restriction as
 // scalar fields. Null elements bind the zero value; schema bounds remain separate.
 func openAPIValidateRequestIntegerTokens(schema map[string]any, value any) error {
+	if openAPIA8FreeformMap(schema) {
+		return openAPIA8JSONValue(value)
+	}
 	if value == nil {
 		return nil
 	}
@@ -124,7 +127,10 @@ func openAPIValidateRequestIntegerTokens(schema map[string]any, value any) error
 		for k, v := range values {
 			field, ok := props[k].(map[string]any)
 			if !ok {
-				return fmt.Errorf("unvalidated request field %s", k)
+				field, ok = schema["additionalProperties"].(map[string]any)
+				if !ok {
+					return fmt.Errorf("unvalidated request field %s", k)
+				}
 			}
 			if err := openAPIValidateRequestIntegerTokens(field, v); err != nil {
 				return err
