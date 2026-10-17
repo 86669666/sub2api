@@ -116,6 +116,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import UserBreakdownSubTable from './UserBreakdownSubTable.vue'
 import type { GroupStat, UserBreakdownItem } from '@/types'
 import { getUserBreakdown } from '@/api/admin/dashboard'
+import { themeAccent } from '@/theme/colors'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -182,7 +183,7 @@ const chartColors = [
   '#ef4444',
   '#8b5cf6',
   '#ec4899',
-  '#14b8a6',
+  themeAccent,
   '#f97316',
   '#6366f1',
   '#84cc16'

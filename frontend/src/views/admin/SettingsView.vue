@@ -13385,7 +13385,7 @@ watch(
   height: 2px;
   border-radius: 9999px;
   content: "";
-  background: linear-gradient(90deg, #14b8a6, #0ea5e9);
+  background: linear-gradient(90deg, var(--accent), #7ea4d4);
 }
 
 .settings-tab-icon {

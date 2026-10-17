@@ -1,4 +1,5 @@
 import http from 'node:http'
+import { visualModes, visualResponse } from './visual-data.mjs'
 import { createHash } from 'node:crypto'
 import { pathToFileURL } from 'node:url'
 
@@ -6,6 +7,7 @@ import { pathToFileURL } from 'node:url'
 export function createFixtureState(owner = 'pure-test') {
  const requests=[]
  let revision=0, sequence=0, status=200, wsRedirect=false, setupHang='', faultMode='none'
+ let visual='off'
  let setup={code:0,data:{needs_setup:false,step:'completed'}}
  return {
   requests,
@@ -17,15 +19,17 @@ export function createFixtureState(owner = 'pure-test') {
    if(value.clear!==undefined && typeof value.clear!=='boolean')throw new Error('invalid clear')
    if(value.setup!==undefined && (!value.setup || typeof value.setup!=='object' || Array.isArray(value.setup)))throw new Error('invalid setup')
    if(value.faultMode!==undefined && !['none','close-before-headers'].includes(value.faultMode))throw new Error('invalid faultMode')
+   if(value.visual!==undefined && !visualModes.includes(value.visual))throw new Error('invalid visual mode')
    const previousRevision=revision
    if(value.clear)requests.length=0
+   if(value.visual!==undefined)visual=value.visual
    if(value.status!==undefined)status=value.status
    if(value.setup!==undefined)setup=structuredClone(value.setup)
    if(value.wsRedirect!==undefined)wsRedirect=value.wsRedirect
    if(value.setupHang!==undefined)setupHang=value.setupHang
    if(value.faultMode!==undefined)faultMode=value.faultMode
    revision++
-   return {owner,previousRevision,revision,status,sequence,setupHang,wsRedirect,faultMode,setup:structuredClone(setup)}
+   return {owner,previousRevision,revision,status,sequence,setupHang,wsRedirect,faultMode,visual,setup:structuredClone(setup)}
   },
   select(req,body='',upgrade=false) {
    const path=new URL(req.url,'http://fixture').pathname
@@ -36,7 +40,7 @@ export function createFixtureState(owner = 'pure-test') {
     method:upgrade?'WS':req.method,url:req.url,headers:{...req.headers},rawHeaders:[...req.rawHeaders],body}
    requests.push(row)
    // A response uses this snapshot even if a subsequent control changes global state.
-   return {row,faultMode,owner,setup:structuredClone(setup),setupHang,wsRedirect}
+   return {row,faultMode,owner,visual,setup:structuredClone(setup),setupHang,wsRedirect}
   },
  }
 }
@@ -73,6 +77,16 @@ export function createFixtureServer(owner = 'pure-test') {
   }
   const selected=state.select(req,body)
   if(closeBeforeHeaders(req,res,selected))return
+  const visualResult=visualResponse({url:req.url,method:req.method,headers:req.headers,body},selected.visual)
+  if(visualResult){
+   selected.row.status=visualResult.status;selected.row.visual=selected.visual
+   selected.row.unmappedVisualAPI=!!visualResult.unmapped
+   if(visualResult.delay)await new Promise(resolve=>setTimeout(resolve,visualResult.delay))
+   res.statusCode=visualResult.status
+   res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store')
+   res.setHeader('X-Request-Id',selected.row.responseId)
+   return res.end(JSON.stringify(visualResult.body))
+  }
   const {row,setup,setupHang}=selected
   if(url.pathname==='/setup/status' && setupHang==='headers')return
   res.setHeader('Access-Control-Allow-Origin','*');res.setHeader('Access-Control-Allow-Credentials','true')

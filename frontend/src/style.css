@@ -2,6 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --surface-page: #f5f6f8;
+  --surface-card: #ffffff;
+  --surface-sidebar: #ffffff;
+  --surface-highlight: #1a1d21;
+  --border-subtle: #e6e8ec;
+  --grid-line: rgba(17, 19, 21, 0.045);
+  --accent: #3b6fd6;
+  --accent-strong: #2f5bb3;
+  --chart-line: #2a3038;
+  --chart-fill: rgba(42, 48, 56, 0.14);
+  --chart-muted: #8b95a1;
+  --cost: #d97706;
+  --sidebar-active: #e8f0fb;
+  --sidebar-active-text: #2f5bb3;
+  color-scheme: light;
+}
+
+.dark {
+  --surface-page: #111315;
+  --surface-card: #1b2026;
+  --surface-sidebar: #111315;
+  --surface-highlight: #242a31;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --grid-line: rgba(255, 255, 255, 0.04);
+  --accent: #8eafeb;
+  --accent-strong: #b7cdf3;
+  --chart-line: #f4f5f6;
+  --chart-fill: rgba(244, 245, 246, 0.14);
+  --chart-muted: #8b949e;
+  --cost: #f0b429;
+  --sidebar-active: #2a313a;
+  --sidebar-active-text: #f4f5f6;
+  color-scheme: dark;
+}
+
+.bg-app {
+  background-color: var(--surface-page);
+}
+
+.bg-mesh-gradient,
+.bg-app-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
 @layer base {
   * {
     @apply border-gray-200 dark:border-dark-700;
@@ -9,15 +57,11 @@
 
   html {
     @apply scroll-smooth antialiased;
-    color-scheme: light;
-  }
-
-  .dark {
-    color-scheme: dark;
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-dark-950 dark:text-gray-100;
+    background: var(--surface-page);
+    @apply text-gray-900 dark:text-gray-100;
     @apply min-h-screen;
   }
 
@@ -80,10 +124,9 @@
   }
 
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-500 to-primary-600;
-    @apply text-white shadow-md shadow-primary-500/25;
-    @apply hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:shadow-primary-500/30;
-    @apply dark:shadow-primary-500/20;
+    @apply bg-primary-600 text-white shadow-sm;
+    @apply hover:bg-primary-700;
+    @apply dark:bg-primary-500 dark:text-white dark:hover:bg-primary-400;
   }
 
   .btn-secondary {
@@ -226,11 +269,34 @@
 
   /* ============ 卡片样式 ============ */
   .card {
-    @apply bg-white dark:bg-dark-800/50;
-    @apply rounded-2xl;
-    @apply border border-gray-100 dark:border-dark-700/50;
-    @apply shadow-card;
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
+    @apply rounded-xl;
+    @apply shadow-none;
     @apply transition-all duration-300;
+  }
+
+  .card-highlight {
+    background: var(--surface-highlight);
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .card-highlight-muted {
+    color: rgba(255, 255, 255, 0.62);
+  }
+
+  .card-highlight-value {
+    color: #fff;
+  }
+
+  .card-highlight-icon {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
+
+  .text-cost {
+    color: var(--cost);
   }
 
   .card-hover {
@@ -317,14 +383,14 @@
   }
 
   .table th {
-    @apply px-4 py-3 text-left font-medium;
-    @apply text-gray-600 dark:text-dark-300;
+    @apply px-3 py-2 text-left text-xs font-medium;
+    @apply text-gray-500 dark:text-dark-300;
     @apply bg-gray-50 dark:bg-dark-800/50;
     @apply border-b border-gray-200 dark:border-dark-700;
   }
 
   .table td {
-    @apply px-4 py-3;
+    @apply px-3 py-2;
     @apply text-gray-700 dark:text-gray-300;
     @apply border-b border-gray-100 dark:border-dark-800;
   }
@@ -341,7 +407,7 @@
   /* ============ 徽章样式 ============ */
   .badge {
     @apply inline-flex items-center gap-1;
-    @apply rounded-full px-2.5 py-0.5 text-xs font-medium;
+    @apply rounded-full px-2 py-0.5 text-[11px] font-medium leading-4;
   }
 
   .badge-primary {
@@ -539,8 +605,10 @@
   /* ============ 侧边栏 ============ */
   .sidebar {
     @apply fixed inset-y-0 left-0 z-40;
-    @apply w-64 bg-white dark:bg-dark-900;
-    @apply border-r border-gray-200 dark:border-dark-800;
+    @apply w-64;
+    background: var(--surface-sidebar);
+    @apply border-r;
+    border-color: var(--border-subtle);
     @apply flex flex-col;
     @apply transition-transform duration-300;
     transition-property: width, transform;
@@ -572,9 +640,13 @@
   }
 
   .sidebar-link-active {
-    @apply bg-primary-50 dark:bg-primary-900/20;
-    @apply text-primary-600 dark:text-primary-400;
-    @apply hover:bg-primary-100 dark:hover:bg-primary-900/30;
+    background: var(--sidebar-active);
+    color: var(--sidebar-active-text);
+  }
+
+  .sidebar-link-active:hover {
+    background: var(--sidebar-active);
+    color: var(--sidebar-active-text);
   }
 
   .sidebar-section {

@@ -369,6 +369,7 @@ import DateRangePicker from '@/components/common/DateRangePicker.vue'
 import Select from '@/components/common/Select.vue'
 import ModelDistributionChart from '@/components/charts/ModelDistributionChart.vue'
 import TokenUsageTrend from '@/components/charts/TokenUsageTrend.vue'
+import { themeAccent } from '@/theme/colors'
 import { useBatchImageAccess } from '@/composables/useBatchImageAccess'
 
 import {
@@ -555,7 +556,7 @@ const userTrendChartData = computed(() => {
     '#ef4444',
     '#8b5cf6',
     '#ec4899',
-    '#14b8a6',
+    themeAccent,
     '#f97316',
     '#6366f1',
     '#84cc16',

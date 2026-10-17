@@ -105,7 +105,7 @@
           <th
             v-if="selectable"
             scope="col"
-            class="sticky-header-cell w-11 min-w-11 px-3 py-3 text-center"
+            class="sticky-header-cell w-11 min-w-11 px-3 py-2 text-center"
           >
             <input
               type="checkbox"
@@ -123,7 +123,7 @@
             scope="col"
             :aria-sort="column.sortable ? getColumnAriaSort(column.key) : undefined"
             :class="[
-              'sticky-header-cell py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-dark-400',
+              'sticky-header-cell py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-dark-400',
               getAdaptivePaddingClass(),
               { 'cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-700': column.sortable },
               getStickyColumnClass(column, index),
@@ -169,10 +169,10 @@
       <tbody class="table-body divide-y divide-gray-200 bg-white dark:divide-dark-700 dark:bg-dark-900">
         <!-- Loading skeleton -->
         <tr v-if="loading" v-for="i in 5" :key="i">
-          <td v-if="selectable" class="w-11 min-w-11 px-3 py-4">
+          <td v-if="selectable" class="w-11 min-w-11 px-3 py-2">
             <div class="mx-auto h-4 w-4 animate-pulse rounded bg-gray-200 dark:bg-dark-700"></div>
           </td>
-          <td v-for="column in columns" :key="column.key" :class="['whitespace-nowrap py-4', getAdaptivePaddingClass()]">
+          <td v-for="column in columns" :key="column.key" :class="['whitespace-nowrap py-2', getAdaptivePaddingClass()]">
             <div class="animate-pulse">
               <div class="h-4 w-3/4 rounded bg-gray-200 dark:bg-dark-700"></div>
             </div>
@@ -220,7 +220,7 @@
             }"
             @click="clickableRows && emit('rowClick', item.row)"
           >
-            <td v-if="selectable" class="w-11 min-w-11 px-3 py-4 text-center">
+            <td v-if="selectable" class="w-11 min-w-11 px-3 py-2 text-center">
               <input
                 type="checkbox"
                 class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-dark-600 dark:bg-dark-800"
@@ -235,7 +235,7 @@
               v-for="(column, colIndex) in columns"
               :key="column.key"
               :class="[
-                'whitespace-nowrap py-4 text-sm text-gray-900 dark:text-gray-100',
+                'whitespace-nowrap py-2 text-sm text-gray-900 dark:text-gray-100',
                 getAdaptivePaddingClass(),
                 getStickyColumnClass(column, colIndex),
                 column.class
@@ -766,7 +766,7 @@ const rowVirtualizer = useVirtualizer(computed(() => ({
     const row = sortedData.value?.[index]
     return row != null ? resolveRowKey(row, index) : index
   },
-  estimateSize: () => props.estimateRowHeight ?? 56,
+  estimateSize: () => props.estimateRowHeight ?? 44,
   overscan: props.overscan ?? 5,
   // 兜底高度:首个有效高度读数到来前,先按一屏渲染,避免空白帧
   initialRect: { width: 0, height: estimatedViewportHeight() },
