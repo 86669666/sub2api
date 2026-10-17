@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "baseline": "6150d906b5924784f3bfd27a0ca3ebb944270474",
+  "baseline": "d7987ab225bc392faac24fae3940070fdcd118f6",
   "bootstrap": [
     {
       "method": "GET",
@@ -81,9 +81,9 @@
       "path": "/api/v1/admin/announcements/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A6 announcement lifecycle: real router/auth/handler/service with isolated repositories, request/response and failure contracts."
     },
     {
       "method": "DELETE",
@@ -711,27 +711,27 @@
       "path": "/api/v1/admin/announcements",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A6 announcement lifecycle: real router/auth/handler/service with isolated repositories, request/response and failure contracts."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/announcements/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A6 announcement lifecycle: real router/auth/handler/service with isolated repositories, request/response and failure contracts."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/announcements/:id/read-status",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A6 announcement lifecycle: real router/auth/handler/service with isolated repositories, request/response and failure contracts."
     },
     {
       "method": "GET",
@@ -2196,9 +2196,9 @@
       "path": "/api/v1/announcements",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A6 announcement lifecycle: real router/auth/handler/service with isolated repositories, request/response and failure contracts."
     },
     {
       "method": "GET",
@@ -3771,9 +3771,9 @@
       "path": "/api/v1/admin/announcements",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A6 announcement lifecycle: real router/auth/handler/service with isolated repositories, request/response and failure contracts."
     },
     {
       "method": "POST",
@@ -4806,9 +4806,9 @@
       "path": "/api/v1/announcements/:id/read",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A6 announcement lifecycle: real router/auth/handler/service with isolated repositories, request/response and failure contracts."
     },
     {
       "method": "POST",
@@ -5958,9 +5958,9 @@
       "path": "/api/v1/admin/announcements/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A6 announcement lifecycle: real router/auth/handler/service with isolated repositories, request/response and failure contracts."
     },
     {
       "method": "PUT",
