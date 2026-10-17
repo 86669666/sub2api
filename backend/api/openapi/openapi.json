@@ -23072,7 +23072,7 @@
       "delete": {
         "operationId": "deleteAnnouncement",
         "summary": "deleteAnnouncement",
-        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. Admin authentication precedence: upgrade-shaped jwt subprotocol > x-api-key > Authorization Bearer; invalid higher priority never falls back. JWT role is loaded from active stored user, not claims or headers. API key maps GetFirstAdmin; no separate JWT active/version/role checks on that branch. Global limiter then audit then compliance guard. ",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. Admin authentication precedence: upgrade-shaped jwt subprotocol > x-api-key > Authorization Bearer; invalid higher priority never falls back. JWT role is loaded from active stored user, not claims or headers. API key maps GetFirstAdmin; no separate JWT active/version/role checks on that branch. Global limiter then audit then compliance guard. Delete ignores the affected-row count: a missing positive ID and repeated deletion return 200 with the same success message; no prior existence lookup occurs. Storage errors still return 500.",
         "security": [
           {
             "BearerAuth": []
@@ -23098,7 +23098,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful JSON response.",
+            "description": "Successful deletion or successful no-op when the ID is already absent.",
             "content": {
               "application/json": {
                 "schema": {
@@ -23320,41 +23320,6 @@
                     "code": {
                       "type": "integer",
                       "const": 400
-                    },
-                    "message": {
-                      "type": "string"
-                    },
-                    "reason": {
-                      "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "properties": {},
-                      "required": [],
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "const": 404
                     },
                     "message": {
                       "type": "string"
@@ -23803,7 +23768,7 @@
       "get": {
         "operationId": "listUserAnnouncements",
         "summary": "listUserAnnouncements",
-        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. JWT identity, active stored user, token version and configured session binding; backend-mode user guard then global limiter then audit. API key alone does not authenticate. Visibility requires active status and time in [starts_at,ends_at), then balance/active subscription targeting. Public DTO excludes status/targeting/actor IDs/email/balance. Read map is scoped to authenticated user and visible IDs only. Unread first, within each group ID descending (not timestamp ordering). Empty result is []. ",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. JWT identity, active stored user, token version and configured session binding; backend-mode user guard then global limiter then audit. API key alone does not authenticate. Visibility requires active status and time in [starts_at,ends_at), then balance/active subscription targeting. Public DTO excludes status/targeting/actor IDs/email/balance. Read map is scoped to authenticated user and visible IDs only. Unread first, within each group ID descending (not timestamp ordering). Empty result is []. Production repository ListActive selects at most 200 active, in-window rows ordered by ID DESC before service targeting and unread filtering. There is no pagination or backfill for discarded targeted/read rows. Source-derived persistence behavior and generated-SQL assertion; memory repository fixtures do not execute this SQL limit.",
         "security": [
           {
             "BearerAuth": []
@@ -23946,7 +23911,7 @@
             }
           },
           "403": {
-            "description": "Backend mode; V2 additionally CHANNEL_MONITOR_DISABLED or CHANNEL_MONITOR_MODE_MISMATCH.",
+            "description": "Backend mode is enabled and the authenticated stored user is not an admin. No announcement/monitor policy error is emitted.",
             "content": {
               "application/json": {
                 "schema": {
@@ -23958,17 +23923,6 @@
                     },
                     "message": {
                       "type": "string"
-                    },
-                    "reason": {
-                      "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "properties": {},
-                      "required": [],
-                      "additionalProperties": {
-                        "type": "string"
-                      }
                     }
                   },
                   "required": [
@@ -23981,35 +23935,18 @@
             }
           },
           "429": {
-            "description": "Global panel limit or V2 heavy-route limit; Retry-After provided.",
+            "description": "Configured global per-user panel rate limit exceeded. The actual middleware emits string code RATE_LIMITED. No heavy-route limiter is registered on these announcement routes.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "code": {
-                      "type": [
-                        "integer",
-                        "string"
-                      ],
-                      "enum": [
-                        429,
-                        "RATE_LIMITED"
-                      ]
+                      "type": "string",
+                      "const": "RATE_LIMITED"
                     },
                     "message": {
                       "type": "string"
-                    },
-                    "reason": {
-                      "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "properties": {},
-                      "required": [],
-                      "additionalProperties": {
-                        "type": "string"
-                      }
                     }
                   },
                   "required": [
@@ -24022,7 +23959,7 @@
             },
             "headers": {
               "Retry-After": {
-                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "description": "Required positive whole seconds, rounding the remaining duration upward; nonpositive duration falls back to the one-minute window.",
                 "required": true,
                 "schema": {
                   "type": "string"
@@ -24186,7 +24123,7 @@
             }
           },
           "403": {
-            "description": "Backend mode; V2 additionally CHANNEL_MONITOR_DISABLED or CHANNEL_MONITOR_MODE_MISMATCH.",
+            "description": "Backend mode is enabled and the authenticated stored user is not an admin. No announcement/monitor policy error is emitted.",
             "content": {
               "application/json": {
                 "schema": {
@@ -24198,17 +24135,6 @@
                     },
                     "message": {
                       "type": "string"
-                    },
-                    "reason": {
-                      "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "properties": {},
-                      "required": [],
-                      "additionalProperties": {
-                        "type": "string"
-                      }
                     }
                   },
                   "required": [
@@ -24221,35 +24147,18 @@
             }
           },
           "429": {
-            "description": "Global panel limit or V2 heavy-route limit; Retry-After provided.",
+            "description": "Configured global per-user panel rate limit exceeded. The actual middleware emits string code RATE_LIMITED. No heavy-route limiter is registered on these announcement routes.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "code": {
-                      "type": [
-                        "integer",
-                        "string"
-                      ],
-                      "enum": [
-                        429,
-                        "RATE_LIMITED"
-                      ]
+                      "type": "string",
+                      "const": "RATE_LIMITED"
                     },
                     "message": {
                       "type": "string"
-                    },
-                    "reason": {
-                      "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "properties": {},
-                      "required": [],
-                      "additionalProperties": {
-                        "type": "string"
-                      }
                     }
                   },
                   "required": [
@@ -24262,7 +24171,7 @@
             },
             "headers": {
               "Retry-After": {
-                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "description": "Required positive whole seconds, rounding the remaining duration upward; nonpositive duration falls back to the one-minute window.",
                 "required": true,
                 "schema": {
                   "type": "string"

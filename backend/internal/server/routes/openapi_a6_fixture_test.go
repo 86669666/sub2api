@@ -68,11 +68,10 @@ func (r *openAPIA6Announcements) Delete(_ context.Context, id int64) error {
 	if e := r.err("delete"); e != nil {
 		return e
 	}
-	if _, ok := r.rows[id]; !ok {
-		return service.ErrAnnouncementNotFound
+	if _, ok := r.rows[id]; ok {
+		delete(r.rows, id)
+		r.writes++
 	}
-	delete(r.rows, id)
-	r.writes++
 	return nil
 }
 func (r *openAPIA6Announcements) all() []service.Announcement {
@@ -207,13 +206,14 @@ func (a *openAPIA6Audit) BatchInsert(_ context.Context, logs []*service.AuditLog
 }
 
 type openAPIA6Fixture struct {
-	a1           *openAPIA1Fixture
-	anns         *openAPIA6Announcements
-	reads        *openAPIA6Reads
-	users        *openAPIA6Users
-	subs         *openAPIA6Subs
-	audit        *openAPIA6Audit
-	auditService *service.AuditLogService
+	announcementRepo service.AnnouncementRepository
+	a1               *openAPIA1Fixture
+	anns             *openAPIA6Announcements
+	reads            *openAPIA6Reads
+	users            *openAPIA6Users
+	subs             *openAPIA6Subs
+	audit            *openAPIA6Audit
+	auditService     *service.AuditLogService
 }
 
 func openAPIA6NewFixture(t *testing.T, adminRoute bool) *openAPIA6Fixture {
@@ -254,7 +254,11 @@ func (f *openAPIA6Fixture) router(t *testing.T) *gin.Engine {
 	})
 	users := service.NewUserService(f.users, f.a1.settings, nil, nil)
 	auth := service.NewAuthService(nil, f.users, nil, f.a1.refresh, cfg, settings, nil, nil, nil, nil, nil, nil, nil)
-	svc := service.NewAnnouncementService(f.anns, f.reads, f.users, f.subs)
+	repo := f.announcementRepo
+	if repo == nil {
+		repo = f.anns
+	}
+	svc := service.NewAnnouncementService(repo, f.reads, f.users, f.subs)
 	h := openAPIHandlers(t)
 	h.Announcement = handler.NewAnnouncementHandler(svc)
 	h.Admin.Announcement = admin.NewAnnouncementHandler(svc)

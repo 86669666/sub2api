@@ -105,7 +105,15 @@ func openAPIA6Cases(t *testing.T, method, path string) []openAPIA6Case {
 			cases = append(cases, openAPIA6Case{name: "invalid id " + id, id: id, status: 400, invalidRequest: id != "0" && id != "-1"})
 		}
 		for _, id := range []string{"999", "9223372036854775807"} {
-			cases = append(cases, openAPIA6Case{name: "not found " + id, id: id, status: 404, reason: "ANNOUNCEMENT_NOT_FOUND"})
+			if method == "delete" {
+				cases = append(cases, openAPIA6Case{name: "missing delete is successful no-op " + id, id: id, status: 200, inspect: func(t *testing.T, f *openAPIA6Fixture, _ any) {
+					if f.anns.writes != 0 || f.anns.calls != 1 {
+						t.Fatal("missing delete must execute once without deleting a row")
+					}
+				}})
+			} else {
+				cases = append(cases, openAPIA6Case{name: "not found " + id, id: id, status: 404, reason: "ANNOUNCEMENT_NOT_FOUND"})
+			}
 		}
 		for _, id := range []string{"+301", "00301"} {
 			cases = append(cases, openAPIA6Case{name: "decimal spelling " + id, id: id, status: 200})
