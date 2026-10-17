@@ -230,7 +230,7 @@ func openAPIA6VisibilityCases(method string) []openAPIA6Case {
 			case "lte":
 				hit = 10.5 <= val
 			case "eq":
-				hit = 10.5 == val
+				hit = val == 10.5
 			}
 			status := 200
 			if method == "post" && !hit {
@@ -380,7 +380,7 @@ func TestOpenAPIA6Lifecycle(t *testing.T) {
 	}
 	root := "/api/v1/admin/announcements"
 	created := openAPIA5Map(t, call("POST", root, "", `{"title":"Lifecycle","content":"Content","status":"active","password":"A6-REDACT-CANARY"}`)["data"])
-	id := string(created["id"].(json.Number))
+	id := string(openAPIA1As[json.Number](t, created["id"]))
 	if id != "901" {
 		t.Fatal("create identity")
 	}
