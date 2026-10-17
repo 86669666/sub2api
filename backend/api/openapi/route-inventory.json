@@ -837,63 +837,63 @@
       "path": "/api/v1/admin/channel-monitor-v2/config",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A7 admin monitor V2: real router/auth/guards/handler/service and isolated config SQL repository, complete DTO/query/error/admin projection contracts."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitor-v2/dimensions",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A7 admin monitor V2: real router/auth/guards/handler/service and isolated config SQL repository, complete DTO/query/error/admin projection contracts."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitor-v2/errors",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A7 admin monitor V2: real router/auth/guards/handler/service and isolated config SQL repository, complete DTO/query/error/admin projection contracts."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitor-v2/matrix",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A7 admin monitor V2: real router/auth/guards/handler/service and isolated config SQL repository, complete DTO/query/error/admin projection contracts."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitor-v2/models",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A7 admin monitor V2: real router/auth/guards/handler/service and isolated config SQL repository, complete DTO/query/error/admin projection contracts."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitor-v2/snapshot",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A7 admin monitor V2: real router/auth/guards/handler/service and isolated config SQL repository, complete DTO/query/error/admin projection contracts."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitor-v2/users",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A7 admin monitor V2: real router/auth/guards/handler/service and isolated config SQL repository, complete DTO/query/error/admin projection contracts."
     },
     {
       "method": "GET",
@@ -6012,9 +6012,9 @@
       "path": "/api/v1/admin/channel-monitor-v2/config",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A7 admin monitor V2: real router/auth/guards/handler/service and isolated config SQL repository, complete DTO/query/error/admin projection contracts."
     },
     {
       "method": "PUT",
