@@ -16,15 +16,11 @@ var openAPIGoIntegerToken = regexp.MustCompile(`^-?(0|[1-9][0-9]*)$`)
 // The only open object supported is a declared request DTO: production ignores
 // unknown JSON members. Responses and the document itself remain fail-closed.
 func openAPICheckRequestSchema(schema map[string]any) error {
-	if schema["type"] != "object" || schema["additionalProperties"] != true {
+	typ, _, err := openAPISchemaType(schema)
+	if err != nil || typ != "object" || schema["additionalProperties"] != true {
 		return fmt.Errorf("request must declare known object fields and ignored extras")
 	}
-	copy := map[string]any{}
-	for k, v := range schema {
-		copy[k] = v
-	}
-	copy["additionalProperties"] = false
-	return openAPICheckSchema(copy)
+	return openAPICheckSchema(openAPIRequestClosedSchema(schema))
 }
 func openAPIValidateRequest(op openAPIOperation, req *http.Request, pathValues map[string]string, body []byte) error {
 	for _, p := range op.Parameters {
@@ -80,38 +76,17 @@ func openAPIValidateRequest(op openAPIOperation, req *http.Request, pathValues m
 	if err := openAPICheckRequestSchema(schema.Schema); err != nil {
 		return err
 	}
-	var value map[string]any
-	// Integrity of saved test input is stricter than production binding: production
-	// tolerance is explicitly exercised separately; it must not weaken raw decoding.
+	var value any
+	// Raw decoding remains strict; only explicitly open DTO objects ignore extras.
 	if err := openAPIDecode(body, &value); err != nil {
 		return err
 	}
-	props, ok := schema.Schema["properties"].(map[string]any)
-	if !ok {
-		return fmt.Errorf("unvalidated request properties")
-	}
-	known := map[string]any{}
-	for k, v := range value {
-		if _, ok := props[k]; ok {
-			known[k] = v
-		}
-	}
-	closed := map[string]any{}
-	for k, v := range schema.Schema {
-		closed[k] = v
-	}
-	closed["additionalProperties"] = false
-	if err := openAPIValidateValue(closed, known); err != nil {
+	known := openAPIRequestKnownValue(schema.Schema, value)
+	if err := openAPIValidateValue(openAPIRequestClosedSchema(schema.Schema), known); err != nil {
 		return err
 	}
-	for name, value := range known {
-		field, ok := props[name].(map[string]any)
-		if !ok {
-			return fmt.Errorf("unvalidated request field %s", name)
-		}
-		if err := openAPIValidateRequestIntegerTokens(field, value); err != nil {
-			return fmt.Errorf("%s: %w", name, err)
-		}
+	if err := openAPIValidateRequestIntegerTokens(schema.Schema, known); err != nil {
+		return err
 	}
 	return nil
 }
@@ -139,6 +114,21 @@ func openAPIValidateRequestIntegerTokens(schema map[string]any, value any) error
 		n, ok := value.(json.Number)
 		if !ok || !openAPIGoIntegerToken.MatchString(n.String()) {
 			return fmt.Errorf("expected Go integer JSON token without decimal point or exponent")
+		}
+	case "object":
+		props, _ := schema["properties"].(map[string]any)
+		values, ok := value.(map[string]any)
+		if !ok {
+			return fmt.Errorf("expected object")
+		}
+		for k, v := range values {
+			field, ok := props[k].(map[string]any)
+			if !ok {
+				return fmt.Errorf("unvalidated request field %s", k)
+			}
+			if err := openAPIValidateRequestIntegerTokens(field, v); err != nil {
+				return err
+			}
 		}
 	case "array":
 		items, ok := schema["items"].(map[string]any)

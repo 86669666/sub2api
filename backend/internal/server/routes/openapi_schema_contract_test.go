@@ -108,7 +108,7 @@ func openAPISecurityKey(requirements []map[string][]string) string {
 	return strings.Join(alternatives, "|")
 }
 func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) error {
-	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2+A3+A4+A5 partial" || doc.Profile != "a5-monitor-query-v6" {
+	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2+A3+A4+A5+A6 partial" || doc.Profile != "a6-announcement-dto-v7" {
 		return fmt.Errorf("invalid OAS/version/scope/profile metadata")
 	}
 	if len(doc.Paths) == 0 {
@@ -803,6 +803,10 @@ func TestOpenAPIResponses(t *testing.T) {
 		for method, op := range methods {
 			t.Run(method+" "+path, func(t *testing.T) {
 				key := strings.ToUpper(method) + " " + path
+				if openAPIA6Operation(key) {
+					openAPIA6VerifyResponses(t, method, path, op)
+					return
+				}
 				if openAPIA5Operation(key) {
 					openAPIA5VerifyResponses(t, method, path, op)
 					return

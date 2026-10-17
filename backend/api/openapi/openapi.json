@@ -1,13 +1,13 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Sub2API normal-mode HTTP contract — A0+A1+A2+A3+A4+A5 subset",
-    "version": "0.6.0",
+    "title": "Sub2API normal-mode HTTP contract — A0+A1+A2+A3+A4+A5+A6 subset",
+    "version": "0.7.0",
     "description": "Partial executable contract. Other routes are individually tracked in route-inventory.json. Bootstrap setup and provider protocols are not covered by this document."
   },
-  "x-contract-scope": "normal-mode A0+A1+A2+A3+A4+A5 partial",
-  "x-source-baseline": "6150d906b5924784f3bfd27a0ca3ebb944270474",
-  "x-schema-validation-profile": "a5-monitor-query-v6",
+  "x-contract-scope": "normal-mode A0+A1+A2+A3+A4+A5+A6 partial",
+  "x-source-baseline": "d7987ab225bc392faac24fae3940070fdcd118f6",
+  "x-schema-validation-profile": "a6-announcement-dto-v7",
   "paths": {
     "/health": {
       "get": {
@@ -21221,6 +21221,3050 @@
                     "code": {
                       "type": "integer",
                       "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/announcements": {
+      "get": {
+        "operationId": "listAdminAnnouncements",
+        "summary": "listAdminAnnouncements",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. Admin authentication precedence: upgrade-shaped jwt subprotocol > x-api-key > Authorization Bearer; invalid higher priority never falls back. JWT role is loaded from active stored user, not claims or headers. API key maps GetFirstAdmin; no separate JWT active/version/role checks on that branch. Global limiter then audit then compliance guard. Pagination envelope uses repository total but requested normalized page/page_size. Default sort_by created_at, sort_order desc. ",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "First value; ASCII digits only; positive machine int or default 1; no page clamp. Overflow follows Go int arithmetic.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "First value; ASCII digits 1..1000 or default 20 (out-of-range resets, not clamps). Nonempty invalid page_size suppresses limit.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Alias used only when first page_size is absent or empty; same 1..1000/default 20 rules.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "First value; trim whitespace, truncate to 200 bytes, possibly splitting UTF-8. Read-status service trims again.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "description": "First value; handler passes verbatim. Announcement repository: trimmed lowercase title/status/notify_mode/starts_at/ends_at/id/created_at; unknown falls back created_at DESC with ID tiebreaker. Read-status uses user repository sort allowlist, default email.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "description": "First value passed verbatim; repository trims/lowercases asc/desc, invalid values fall back desc in both repositories. Read-status handler default is asc only when parameter is absent.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "First value trimmed; empty means no filter. Unknown status is passed to repository, not rejected.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "content": {
+                                "type": "string"
+                              },
+                              "notify_mode": {
+                                "type": "string"
+                              },
+                              "starts_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "ends_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "targeting": {
+                                "type": "object",
+                                "properties": {
+                                  "any_of": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "all_of": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "type": {
+                                                "type": "string"
+                                              },
+                                              "operator": {
+                                                "type": "string"
+                                              },
+                                              "group_ids": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "integer"
+                                                }
+                                              },
+                                              "value": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            "required": [
+                                              "type",
+                                              "operator"
+                                            ],
+                                            "additionalProperties": false
+                                          }
+                                        }
+                                      },
+                                      "required": [],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [],
+                                "additionalProperties": false
+                              },
+                              "created_by": {
+                                "type": "integer"
+                              },
+                              "updated_by": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "title",
+                              "content",
+                              "notify_mode",
+                              "created_at",
+                              "updated_at",
+                              "status",
+                              "targeting"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "pages": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "total",
+                        "page",
+                        "page_size",
+                        "pages"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated JWT user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "FORBIDDEN"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAnnouncement",
+        "summary": "createAnnouncement",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. Admin authentication precedence: upgrade-shaped jwt subprotocol > x-api-key > Authorization Bearer; invalid higher priority never falls back. JWT role is loaded from active stored user, not claims or headers. API key maps GetFirstAdmin; no separate JWT active/version/role checks on that branch. Global limiter then audit then compliance guard. Title/content trimmed; title required and <=200 UTF-8 bytes, content nonempty with no field-specific maximum. Status draft/active/archived and notify_mode silent/popup use exact binding enums (whitespace invalid). Create omitted/null/empty enum defaults draft/silent; update empty enum is rejected. Targeting any_of OR of all_of AND, empty targeting matches everyone; each nonempty any_of/all_of capped at 50 and empty groups rejected. Condition type/operator trimmed case-sensitive: subscription/in needs positive group_ids (duplicates retained, no group-count cap), balance gt/gte/lt/lte/eq accepts finite values including negative/zero. Every supplied group_id must be positive even for balance. Irrelevant condition fields retained; zero value and empty arrays omitted in response. Create starts_at/ends_at <=0 ignored. Unix seconds; both resulting times must be ordered start<end and serializable local-time year 0..9999 (time.Unix uses server time.Local). Optional DTO pointers omitted, never null. Actor IDs derive from auth subject, request created_by/updated_by ignored. Creation returns 200. ",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "content": {
+                          "type": "string"
+                        },
+                        "notify_mode": {
+                          "type": "string"
+                        },
+                        "starts_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "ends_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "targeting": {
+                          "type": "object",
+                          "properties": {
+                            "any_of": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "all_of": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string"
+                                        },
+                                        "operator": {
+                                          "type": "string"
+                                        },
+                                        "group_ids": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "value": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "required": [
+                                        "type",
+                                        "operator"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [],
+                          "additionalProperties": false
+                        },
+                        "created_by": {
+                          "type": "integer"
+                        },
+                        "updated_by": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "content",
+                        "notify_mode",
+                        "created_at",
+                        "updated_at",
+                        "status",
+                        "targeting"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated JWT user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "FORBIDDEN"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "description": "Go JSON DTO; unknown members ignored at every nesting level. Native integer JSON tokens only for times/group_ids. Duplicate fields and trailing JSON may be tolerated by binding but are not portable contract inputs. Root null fails required title/content. ",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "notify_mode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "targeting": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "any_of": {
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "all_of": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "operator": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "group_ids": {
+                                    "type": [
+                                      "array",
+                                      "null"
+                                    ],
+                                    "items": {
+                                      "type": [
+                                        "integer",
+                                        "null"
+                                      ],
+                                      "minimum": -9223372036854775808,
+                                      "maximum": 9223372036854775807
+                                    }
+                                  },
+                                  "value": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [],
+                                "additionalProperties": true
+                              }
+                            }
+                          },
+                          "required": [],
+                          "additionalProperties": true
+                        }
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": true
+                  },
+                  "starts_at": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807
+                  },
+                  "ends_at": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807
+                  }
+                },
+                "required": [
+                  "title",
+                  "content"
+                ],
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/announcements/{id}": {
+      "get": {
+        "operationId": "getAnnouncement",
+        "summary": "getAnnouncement",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. Admin authentication precedence: upgrade-shaped jwt subprotocol > x-api-key > Authorization Bearer; invalid higher priority never falls back. JWT role is loaded from active stored user, not claims or headers. API key maps GetFirstAdmin; no separate JWT active/version/role checks on that branch. Global limiter then audit then compliance guard. ",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Base-10 ParseInt int64 and >0; leading plus/zeros accepted; invalid/nonpositive ID=400.",
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "content": {
+                          "type": "string"
+                        },
+                        "notify_mode": {
+                          "type": "string"
+                        },
+                        "starts_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "ends_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "targeting": {
+                          "type": "object",
+                          "properties": {
+                            "any_of": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "all_of": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string"
+                                        },
+                                        "operator": {
+                                          "type": "string"
+                                        },
+                                        "group_ids": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "value": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "required": [
+                                        "type",
+                                        "operator"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [],
+                          "additionalProperties": false
+                        },
+                        "created_by": {
+                          "type": "integer"
+                        },
+                        "updated_by": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "content",
+                        "notify_mode",
+                        "created_at",
+                        "updated_at",
+                        "status",
+                        "targeting"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated JWT user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "FORBIDDEN"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateAnnouncement",
+        "summary": "updateAnnouncement",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. Admin authentication precedence: upgrade-shaped jwt subprotocol > x-api-key > Authorization Bearer; invalid higher priority never falls back. JWT role is loaded from active stored user, not claims or headers. API key maps GetFirstAdmin; no separate JWT active/version/role checks on that branch. Global limiter then audit then compliance guard. Title/content trimmed; title required and <=200 UTF-8 bytes, content nonempty with no field-specific maximum. Status draft/active/archived and notify_mode silent/popup use exact binding enums (whitespace invalid). Create omitted/null/empty enum defaults draft/silent; update empty enum is rejected. Targeting any_of OR of all_of AND, empty targeting matches everyone; each nonempty any_of/all_of capped at 50 and empty groups rejected. Condition type/operator trimmed case-sensitive: subscription/in needs positive group_ids (duplicates retained, no group-count cap), balance gt/gte/lt/lte/eq accepts finite values including negative/zero. Every supplied group_id must be positive even for balance. Irrelevant condition fields retained; zero value and empty arrays omitted in response. Update starts_at/ends_at=0 clears; negative Unix seconds allowed when JSON year is 0..9999; targeting {} clears whereas null preserves. Unix seconds; both resulting times must be ordered start<end and serializable local-time year 0..9999 (time.Unix uses server time.Local). Optional DTO pointers omitted, never null. Actor IDs derive from auth subject, request created_by/updated_by ignored. Creation returns 200. ",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Base-10 ParseInt int64 and >0; leading plus/zeros accepted; invalid/nonpositive ID=400.",
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "content": {
+                          "type": "string"
+                        },
+                        "notify_mode": {
+                          "type": "string"
+                        },
+                        "starts_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "ends_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "targeting": {
+                          "type": "object",
+                          "properties": {
+                            "any_of": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "all_of": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string"
+                                        },
+                                        "operator": {
+                                          "type": "string"
+                                        },
+                                        "group_ids": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "integer"
+                                          }
+                                        },
+                                        "value": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      "required": [
+                                        "type",
+                                        "operator"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [],
+                          "additionalProperties": false
+                        },
+                        "created_by": {
+                          "type": "integer"
+                        },
+                        "updated_by": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "content",
+                        "notify_mode",
+                        "created_at",
+                        "updated_at",
+                        "status",
+                        "targeting"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated JWT user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "FORBIDDEN"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "description": "Go JSON DTO; unknown members ignored at every nesting level. Native integer JSON tokens only for times/group_ids. Duplicate fields and trailing JSON may be tolerated by binding but are not portable contract inputs. Root null, {} and omitted/null pointer fields preserve fields but still perform update and actor attribution. ",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "content": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "status": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "notify_mode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "targeting": {
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "any_of": {
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "properties": {
+                            "all_of": {
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "operator": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "group_ids": {
+                                    "type": [
+                                      "array",
+                                      "null"
+                                    ],
+                                    "items": {
+                                      "type": [
+                                        "integer",
+                                        "null"
+                                      ],
+                                      "minimum": -9223372036854775808,
+                                      "maximum": 9223372036854775807
+                                    }
+                                  },
+                                  "value": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [],
+                                "additionalProperties": true
+                              }
+                            }
+                          },
+                          "required": [],
+                          "additionalProperties": true
+                        }
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": true
+                  },
+                  "starts_at": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807
+                  },
+                  "ends_at": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807
+                  }
+                },
+                "required": [],
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteAnnouncement",
+        "summary": "deleteAnnouncement",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. Admin authentication precedence: upgrade-shaped jwt subprotocol > x-api-key > Authorization Bearer; invalid higher priority never falls back. JWT role is loaded from active stored user, not claims or headers. API key maps GetFirstAdmin; no separate JWT active/version/role checks on that branch. Global limiter then audit then compliance guard. Delete ignores the affected-row count: a missing positive ID and repeated deletion return 200 with the same success message; no prior existence lookup occurs. Storage errors still return 500.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Base-10 ParseInt int64 and >0; leading plus/zeros accepted; invalid/nonpositive ID=400.",
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful deletion or successful no-op when the ID is already absent.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "const": "Announcement deleted successfully"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated JWT user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "FORBIDDEN"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/announcements/{id}/read-status": {
+      "get": {
+        "operationId": "listAnnouncementReadStatus",
+        "summary": "listAnnouncementReadStatus",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. Admin authentication precedence: upgrade-shaped jwt subprotocol > x-api-key > Authorization Bearer; invalid higher priority never falls back. JWT role is loaded from active stored user, not claims or headers. API key maps GetFirstAdmin; no separate JWT active/version/role checks on that branch. Global limiter then audit then compliance guard. Pagination envelope uses repository total but requested normalized page/page_size. Default sort_by email, sort_order asc. Eligible tests targeting only, ignoring draft/archived and schedule. Includes user email/username/balance and optional read_at for administrators. ",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Base-10 ParseInt int64 and >0; leading plus/zeros accepted; invalid/nonpositive ID=400.",
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "First value; ASCII digits only; positive machine int or default 1; no page clamp. Overflow follows Go int arithmetic.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "First value; ASCII digits 1..1000 or default 20 (out-of-range resets, not clamps). Nonempty invalid page_size suppresses limit.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Alias used only when first page_size is absent or empty; same 1..1000/default 20 rules.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "First value; trim whitespace, truncate to 200 bytes, possibly splitting UTF-8. Read-status service trims again.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "required": false,
+            "description": "First value passed verbatim; handler default email only when absent. User repository trims/lowercases email/username/role/balance/concurrency/status/created_at/last_active_at/last_used_at; unknown or empty falls back id, preserving normalized order (invalid order defaults desc); ID tie-breaker follows same direction.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "required": false,
+            "description": "First value passed verbatim; repository trims/lowercases asc/desc, invalid values fall back desc in both repositories. Read-status handler default is asc only when parameter is absent.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "user_id": {
+                                "type": "integer"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "username": {
+                                "type": "string"
+                              },
+                              "balance": {
+                                "type": "number"
+                              },
+                              "eligible": {
+                                "type": "boolean"
+                              },
+                              "read_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            },
+                            "required": [
+                              "user_id",
+                              "email",
+                              "username",
+                              "balance",
+                              "eligible"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "page_size": {
+                          "type": "integer"
+                        },
+                        "pages": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "items",
+                        "total",
+                        "page",
+                        "page_size",
+                        "pages"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/malformed credentials, invalid admin key or token, expired token, missing/inactive user, revoked token or session binding mismatch. Codes: UNAUTHORIZED, INVALID_ADMIN_KEY, INVALID_TOKEN, TOKEN_EXPIRED, USER_NOT_FOUND, USER_INACTIVE, TOKEN_REVOKED, SESSION_BINDING_MISMATCH.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated JWT user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "FORBIDDEN"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel rate limit exceeded. Retry-After is a positive number of seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/announcements": {
+      "get": {
+        "operationId": "listUserAnnouncements",
+        "summary": "listUserAnnouncements",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. JWT identity, active stored user, token version and configured session binding; backend-mode user guard then global limiter then audit. API key alone does not authenticate. Visibility requires active status and time in [starts_at,ends_at), then balance/active subscription targeting. Public DTO excludes status/targeting/actor IDs/email/balance. Read map is scoped to authenticated user and visible IDs only. Unread first, within each group ID descending (not timestamp ordering). Empty result is []. Production repository ListActive selects at most 200 active, in-window rows ordered by ID DESC before service targeting and unread filtering. There is no pagination or backfill for discarded targeted/read rows. Source-derived persistence behavior and generated-SQL assertion; memory repository fixtures do not execute this SQL limit.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "unread_only",
+            "in": "query",
+            "required": false,
+            "description": "First value trimmed and case-folded: 1,true,yes,y,on true; everything else false.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "content": {
+                            "type": "string"
+                          },
+                          "notify_mode": {
+                            "type": "string"
+                          },
+                          "starts_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "ends_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "read_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                          "content",
+                          "notify_mode",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT/session authentication failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode is enabled and the authenticated stored user is not an admin. No announcement/monitor policy error is emitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured global per-user panel rate limit exceeded. The actual middleware emits string code RATE_LIMITED. No heavy-route limiter is registered on these announcement routes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Required positive whole seconds, rounding the remaining duration upward; nonpositive duration falls back to the one-minute window.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/announcements/{id}/read": {
+      "post": {
+        "operationId": "markAnnouncementRead",
+        "summary": "markAnnouncementRead",
+        "description": "Real normal-mode route; JSON only, no SSE or upgrade response. Unknown query/identity headers are ignored. JWT identity, active stored user, token version and configured session binding; backend-mode user guard then global limiter then audit. API key alone does not authenticate. Visibility requires active status and time in [starts_at,ends_at), then balance/active subscription targeting. Public DTO excludes status/targeting/actor IDs/email/balance. No body is parsed. User ID comes only from JWT. Invisible/missing announcement=404 without read write. Service invokes MarkRead on each request; repository conflict-do-nothing preserves first read timestamp (not a service cache guarantee). ",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Base-10 ParseInt int64 and >0; leading plus/zeros accepted; invalid/nonpositive ID=400.",
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful JSON response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "const": "ok"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT/session authentication failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode is enabled and the authenticated stored user is not an admin. No announcement/monitor policy error is emitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured global per-user panel rate limit exceeded. The actual middleware emits string code RATE_LIMITED. No heavy-route limiter is registered on these announcement routes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Required positive whole seconds, rounding the remaining duration upward; nonpositive duration falls back to the one-minute window.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Validation, visibility/not-found, or repository error; reason appears for structured service errors; raw repository failures return generic 500 without leaking error text.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
                     },
                     "message": {
                       "type": "string"
