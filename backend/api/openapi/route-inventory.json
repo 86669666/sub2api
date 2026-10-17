@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "baseline": "8bb7ebdfe3a198fbb689e0d68cf337f2971b4e0c",
+  "baseline": "6150d906b5924784f3bfd27a0ca3ebb944270474",
   "bootstrap": [
     {
       "method": "GET",
@@ -2376,72 +2376,72 @@
       "path": "/api/v1/channel-monitor-v2/dimensions",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A5 complete user monitor legacy+V2 cluster: actual projections, role/group scope, repeated queries, gates, failures and isolated real-router validation."
     },
     {
       "method": "GET",
       "path": "/api/v1/channel-monitor-v2/errors",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A5 complete user monitor legacy+V2 cluster: actual projections, role/group scope, repeated queries, gates, failures and isolated real-router validation."
     },
     {
       "method": "GET",
       "path": "/api/v1/channel-monitor-v2/matrix",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A5 complete user monitor legacy+V2 cluster: actual projections, role/group scope, repeated queries, gates, failures and isolated real-router validation."
     },
     {
       "method": "GET",
       "path": "/api/v1/channel-monitor-v2/models",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A5 complete user monitor legacy+V2 cluster: actual projections, role/group scope, repeated queries, gates, failures and isolated real-router validation."
     },
     {
       "method": "GET",
       "path": "/api/v1/channel-monitor-v2/snapshot",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A5 complete user monitor legacy+V2 cluster: actual projections, role/group scope, repeated queries, gates, failures and isolated real-router validation."
     },
     {
       "method": "GET",
       "path": "/api/v1/channel-monitor-v2/users",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A5 complete user monitor legacy+V2 cluster: actual projections, role/group scope, repeated queries, gates, failures and isolated real-router validation."
     },
     {
       "method": "GET",
       "path": "/api/v1/channel-monitors",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A5 complete user monitor legacy+V2 cluster: actual projections, role/group scope, repeated queries, gates, failures and isolated real-router validation."
     },
     {
       "method": "GET",
       "path": "/api/v1/channel-monitors/:id/status",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A5 complete user monitor legacy+V2 cluster: actual projections, role/group scope, repeated queries, gates, failures and isolated real-router validation."
     },
     {
       "method": "GET",

@@ -30,6 +30,15 @@ func openAPIValidateRequest(op openAPIOperation, req *http.Request, pathValues m
 	for _, p := range op.Parameters {
 		var value string
 		var present bool
+		if err := openAPICheckParameter(p); err != nil {
+			return err
+		}
+		if p.Schema["type"] == "array" {
+			if err := openAPIValidateQueryList(p, req.URL.Query()); err != nil {
+				return err
+			}
+			continue
+		}
 		switch p.In {
 		case "path":
 			value, present = pathValues[p.Name]
