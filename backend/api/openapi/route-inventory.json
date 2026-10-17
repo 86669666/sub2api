@@ -99,18 +99,18 @@
       "path": "/api/v1/admin/channel-monitor-templates/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "DELETE",
       "path": "/api/v1/admin/channel-monitors/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "DELETE",
@@ -810,27 +810,27 @@
       "path": "/api/v1/admin/channel-monitor-templates",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitor-templates/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitor-templates/:id/monitors",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "GET",
@@ -900,27 +900,27 @@
       "path": "/api/v1/admin/channel-monitors",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitors/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/channel-monitors/:id/history",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "GET",
@@ -3852,45 +3852,45 @@
       "path": "/api/v1/admin/channel-monitor-templates",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "POST",
       "path": "/api/v1/admin/channel-monitor-templates/:id/apply",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "POST",
       "path": "/api/v1/admin/channel-monitors",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "POST",
       "path": "/api/v1/admin/channel-monitors/:id/duplicate",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "POST",
       "path": "/api/v1/admin/channel-monitors/:id/run",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "POST",
@@ -6003,9 +6003,9 @@
       "path": "/api/v1/admin/channel-monitor-templates/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "PUT",
@@ -6021,9 +6021,9 @@
       "path": "/api/v1/admin/channel-monitors/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A8 complete admin monitor/template lifecycle with concrete DTO/query/error/auth contracts and isolated handler/service tests."
     },
     {
       "method": "PUT",

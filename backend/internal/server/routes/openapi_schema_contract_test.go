@@ -108,7 +108,7 @@ func openAPISecurityKey(requirements []map[string][]string) string {
 	return strings.Join(alternatives, "|")
 }
 func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) error {
-	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2+A3+A4+A5+A6+A7 partial" || doc.Profile != "a7-admin-monitor-v2-dto-v8" {
+	if doc.OpenAPI != "3.1.1" || doc.Info.Title == "" || doc.Info.Version == "" || doc.Scope != "normal-mode A0+A1+A2+A3+A4+A5+A6+A7+A8 partial" || doc.Profile != "a8-admin-monitors-json-map-v9" {
 		return fmt.Errorf("invalid OAS/version/scope/profile metadata")
 	}
 	if len(doc.Paths) == 0 {
@@ -224,10 +224,10 @@ func openAPIValidateDocument(doc openAPIDocument, inventory []openAPICoverage) e
 					return fmt.Errorf("invalid status/description: %s %s", key, status)
 				}
 				for name, header := range response.Headers {
-					if key != "POST /api/v1/keys" && (name == "X-Idempotency-Replayed" || status == "409") {
+					if key != "POST /api/v1/keys" && key != "POST /api/v1/admin/channel-monitors/{id}/duplicate" && (name == "X-Idempotency-Replayed" || status == "409") {
 						return fmt.Errorf("unsupported response header contract")
 					}
-					if (!header.Required && key != "POST /api/v1/keys") || (name != "Retry-After" && name != "X-Idempotency-Replayed") || (name == "Retry-After" && status != "429" && status != "409") || (name == "X-Idempotency-Replayed" && status != "200") || header.Description == "" || len(header.Schema) != 1 || header.Schema["type"] != "string" {
+					if (!header.Required && key != "POST /api/v1/keys" && key != "POST /api/v1/admin/channel-monitors/{id}/duplicate") || (name != "Retry-After" && name != "X-Idempotency-Replayed" && name != "X-Idempotency-Recovered") || (name == "Retry-After" && status != "429" && status != "409") || ((name == "X-Idempotency-Replayed" || name == "X-Idempotency-Recovered") && status != "200") || header.Description == "" || len(header.Schema) != 1 || header.Schema["type"] != "string" {
 						return fmt.Errorf("unsupported response header contract")
 					}
 				}
@@ -304,7 +304,7 @@ func openAPICheckSchema(schema map[string]any) error {
 	}
 	for key := range schema {
 		switch key {
-		case "type", "properties", "required", "additionalProperties", "const", "description", "items", "enum", "minimum", "maximum", "minLength", "maxLength", "format", "propertyNames", "maxItems":
+		case "type", "properties", "required", "additionalProperties", "const", "description", "items", "enum", "minimum", "maximum", "minLength", "maxLength", "format", "propertyNames", "maxItems", "x-freeform-json":
 		default:
 			return fmt.Errorf("unsupported A0 schema keyword: %s", key)
 		}
@@ -329,10 +329,13 @@ func openAPICheckSchema(schema map[string]any) error {
 			return fmt.Errorf("array keyword on %s", typ)
 		}
 	}
+	if _, exists := schema["x-freeform-json"]; exists && !openAPIA8FreeformMap(schema) {
+		return fmt.Errorf("invalid freeform JSON map declaration")
+	}
 	switch typ {
 	case "object":
 		additional, mapped := schema["additionalProperties"].(map[string]any)
-		if schema["additionalProperties"] != false && !mapped {
+		if schema["additionalProperties"] != false && !mapped && !openAPIA8FreeformMap(schema) {
 			return fmt.Errorf("A0 objects must be closed or have typed additional properties")
 		}
 		if mapped {
@@ -350,7 +353,7 @@ func openAPICheckSchema(schema map[string]any) error {
 			}
 		}
 		props, ok := schema["properties"].(map[string]any)
-		if !ok || (len(props) == 0 && !mapped) {
+		if !ok || (len(props) == 0 && !mapped && !openAPIA8FreeformMap(schema)) {
 			return fmt.Errorf("object properties missing")
 		}
 		required, ok := schema["required"].([]any)
@@ -595,6 +598,12 @@ func openAPIValidateValue(schema map[string]any, value any) error {
 			}
 			p, ok := props[name]
 			if !ok {
+				if openAPIA8FreeformMap(schema) {
+					if err := openAPIA8JSONValue(v); err != nil {
+						return err
+					}
+					continue
+				}
 				p, ok = schema["additionalProperties"].(map[string]any)
 				if !ok {
 					return fmt.Errorf("unexpected property %s", name)
@@ -742,7 +751,7 @@ func openAPIValidateResponse(op openAPIOperation, rec *httptest.ResponseRecorder
 		if value == "" && !header.Required {
 			continue
 		}
-		if name == "X-Idempotency-Replayed" && value != "true" {
+		if (name == "X-Idempotency-Replayed" || name == "X-Idempotency-Recovered") && value != "true" {
 			return fmt.Errorf("invalid replay header")
 		}
 		if name == "Retry-After" {
@@ -803,6 +812,10 @@ func TestOpenAPIResponses(t *testing.T) {
 		for method, op := range methods {
 			t.Run(method+" "+path, func(t *testing.T) {
 				key := strings.ToUpper(method) + " " + path
+				if openAPIA8Operation(key) {
+					openAPIA8VerifyResponses(t, method, path, op)
+					return
+				}
 				if openAPIA7Operation(key) {
 					openAPIA7VerifyResponses(t, method, path, op)
 					return

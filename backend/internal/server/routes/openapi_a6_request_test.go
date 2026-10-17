@@ -7,7 +7,7 @@ func openAPIRequestClosedSchema(schema map[string]any) map[string]any {
 	for k, v := range schema {
 		out[k] = v
 	}
-	if schema["additionalProperties"] == true {
+	if schema["additionalProperties"] == true && !openAPIA8FreeformMap(schema) {
 		out["additionalProperties"] = false
 	}
 	if props, ok := schema["properties"].(map[string]any); ok {
@@ -27,6 +27,9 @@ func openAPIRequestClosedSchema(schema map[string]any) map[string]any {
 	return out
 }
 func openAPIRequestKnownValue(schema map[string]any, value any) any {
+	if openAPIA8FreeformMap(schema) {
+		return value
+	}
 	switch v := value.(type) {
 	case map[string]any:
 		props, _ := schema["properties"].(map[string]any)
