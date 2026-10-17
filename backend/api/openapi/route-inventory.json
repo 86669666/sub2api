@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "baseline": "a1d4de9b10054ad082d41588a5db85411cc9ca40",
+  "baseline": "8bb7ebdfe3a198fbb689e0d68cf337f2971b4e0c",
   "bootstrap": [
     {
       "method": "GET",
@@ -2637,36 +2637,36 @@
       "path": "/api/v1/subscriptions",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A4 complete registered subscriptions module: finite response schemas, JWT scope, localization, progress skips, summary omission, errors and real-router isolated tests."
     },
     {
       "method": "GET",
       "path": "/api/v1/subscriptions/active",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A4 complete registered subscriptions module: finite response schemas, JWT scope, localization, progress skips, summary omission, errors and real-router isolated tests."
     },
     {
       "method": "GET",
       "path": "/api/v1/subscriptions/progress",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A4 complete registered subscriptions module: finite response schemas, JWT scope, localization, progress skips, summary omission, errors and real-router isolated tests."
     },
     {
       "method": "GET",
       "path": "/api/v1/subscriptions/summary",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A4 complete registered subscriptions module: finite response schemas, JWT scope, localization, progress skips, summary omission, errors and real-router isolated tests."
     },
     {
       "method": "GET",
