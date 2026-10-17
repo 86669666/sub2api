@@ -144,9 +144,9 @@
       "path": "/api/v1/admin/error-passthrough-rules/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A10 complete error-passthrough-rule lifecycle: typed configuration DTO, actual validation/auth/error/partial-update behavior and isolated runtime witnesses."
     },
     {
       "method": "DELETE",
@@ -1134,18 +1134,18 @@
       "path": "/api/v1/admin/error-passthrough-rules",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A10 complete error-passthrough-rule lifecycle: typed configuration DTO, actual validation/auth/error/partial-update behavior and isolated runtime witnesses."
     },
     {
       "method": "GET",
       "path": "/api/v1/admin/error-passthrough-rules/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A10 complete error-passthrough-rule lifecycle: typed configuration DTO, actual validation/auth/error/partial-update behavior and isolated runtime witnesses."
     },
     {
       "method": "GET",
@@ -3996,9 +3996,9 @@
       "path": "/api/v1/admin/error-passthrough-rules",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A10 complete error-passthrough-rule lifecycle: typed configuration DTO, actual validation/auth/error/partial-update behavior and isolated runtime witnesses."
     },
     {
       "method": "POST",
@@ -6066,9 +6066,9 @@
       "path": "/api/v1/admin/error-passthrough-rules/:id",
       "authentication": "admin-jwt-or-key",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A10 complete error-passthrough-rule lifecycle: typed configuration DTO, actual validation/auth/error/partial-update behavior and isolated runtime witnesses."
     },
     {
       "method": "PUT",

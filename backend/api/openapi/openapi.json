@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Sub2API normal-mode HTTP contract \u2014 A0+A1+A2+A3+A4+A5+A6+A7+A8+A9 subset",
+    "title": "Sub2API normal-mode HTTP contract — A0+A1+A2+A3+A4+A5+A6+A7+A8+A9 subset",
     "version": "0.10.0",
     "description": "Partial executable contract. Other routes are individually tracked in route-inventory.json. Bootstrap setup and provider protocols are not covered by this document."
   },
@@ -43839,6 +43839,2090 @@
               "type": "string"
             },
             "description": "Preferred locale for group names; unknown locale falls back to original name."
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/error-passthrough-rules": {
+      "get": {
+        "operationId": "get_admin_error_passthrough_rules",
+        "summary": "GET /api/v1/admin/error-passthrough-rules",
+        "description": "Admin authentication accepts JWT, x-api-key, or the existing WebSocket-upgrade JWT carrier (the response remains JSON). Upgrade JWT takes precedence; otherwise x-api-key precedes Authorization. Stored admin role, active/token/session validation, panel Global rate limiting, audit and compliance acknowledgement apply. No Heavy limiter or step-up on these five routes. Returns every rule as a non-null array (empty=[]), ordered by repository priority ascending; equal-priority order is unspecified. No pagination, filtering or query validation.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "minimum": -9223372036854775808,
+                            "maximum": 9223372036854775807
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "priority": {
+                            "type": "integer",
+                            "minimum": -9223372036854775808,
+                            "maximum": 9223372036854775807
+                          },
+                          "error_codes": {
+                            "type": "array",
+                            "items": {
+                              "type": "integer",
+                              "minimum": -9223372036854775808,
+                              "maximum": 9223372036854775807
+                            }
+                          },
+                          "keywords": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "match_mode": {
+                            "type": "string"
+                          },
+                          "platforms": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "passthrough_code": {
+                            "type": "boolean"
+                          },
+                          "response_code": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ],
+                            "minimum": -9223372036854775808,
+                            "maximum": 9223372036854775807
+                          },
+                          "passthrough_body": {
+                            "type": "boolean"
+                          },
+                          "custom_message": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "skip_monitoring": {
+                            "type": "boolean"
+                          },
+                          "description": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "enabled",
+                          "priority",
+                          "error_codes",
+                          "keywords",
+                          "match_mode",
+                          "platforms",
+                          "passthrough_code",
+                          "response_code",
+                          "passthrough_body",
+                          "custom_message",
+                          "skip_monitoring",
+                          "description",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Admin JWT/key authentication or session failure before request repository access; upgrade-JWT precedence is described on the operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated stored user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        403,
+                        "FORBIDDEN"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel Global rate limit exceeded; Retry-After is positive seconds. No Heavy or key-creation limiter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Authentication/settings/compliance storage failure, or generic repository/Ent error; internal details are not exposed. List storage failures map here.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "post_admin_error_passthrough_rules",
+        "summary": "POST /api/v1/admin/error-passthrough-rules",
+        "description": "Admin authentication accepts JWT, x-api-key, or the existing WebSocket-upgrade JWT carrier (the response remains JSON). Upgrade JWT takes precedence; otherwise x-api-key precedes Authorization. Stored admin role, active/token/session validation, panel Global rate limiting, audit and compliance acknowledgement apply. No Heavy limiter or step-up on these five routes. No trimming or deduplication. Model validation requires a nonempty name, match_mode any/all and at least one nonempty error_codes or keywords array; empty string elements still count. If passthrough_code=false, response_code must be non-null and positive (no HTTP-code upper bound). If passthrough_body=false, custom_message must be non-null and nonempty; whitespace passes. Platforms are not enum-validated. Integers use signed native 64-bit integer JSON tokens on the supported build, including negative priorities and unrestricted error_codes. Name length is checked by Ent (100-byte maximum), and its failure currently maps to generic500 rather than model-validation400. Successful writes return the repository result; there is no additional GetByID after writing. Cache invalidation, reload List, cache Set and notification failures are logged and do not change a successful write response. A failed reload clears local cached rules.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "priority": {
+                          "type": "integer",
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "error_codes": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer",
+                            "minimum": -9223372036854775808,
+                            "maximum": 9223372036854775807
+                          }
+                        },
+                        "keywords": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "match_mode": {
+                          "type": "string"
+                        },
+                        "platforms": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "passthrough_code": {
+                          "type": "boolean"
+                        },
+                        "response_code": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "passthrough_body": {
+                          "type": "boolean"
+                        },
+                        "custom_message": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "skip_monitoring": {
+                          "type": "boolean"
+                        },
+                        "description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "enabled",
+                        "priority",
+                        "error_codes",
+                        "keywords",
+                        "match_mode",
+                        "platforms",
+                        "passthrough_code",
+                        "response_code",
+                        "passthrough_body",
+                        "custom_message",
+                        "skip_monitoring",
+                        "description",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Admin JWT/key authentication or session failure before request repository access; upgrade-JWT precedence is described on the operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated stored user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        403,
+                        "FORBIDDEN"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel Global rate limit exceeded; Retry-After is positive seconds. No Heavy or key-creation limiter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Authentication/settings/compliance storage failure, or generic repository/Ent error; internal details are not exposed. Ent name-length validation and create storage failures map here. Cache reload/notification failures after successful writes do not.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON binding or model validation: name, match_mode, conditions, conditional response_code/custom_message. No required query.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "description": "No trimming or deduplication. Model validation requires a nonempty name, match_mode any/all and at least one nonempty error_codes or keywords array; empty string elements still count. If passthrough_code=false, response_code must be non-null and positive (no HTTP-code upper bound). If passthrough_body=false, custom_message must be non-null and nonempty; whitespace passes. Platforms are not enum-validated. Integers use signed native 64-bit integer JSON tokens on the supported build, including negative priorities and unrestricted error_codes. Name length is checked by Ent (100-byte maximum), and its failure currently maps to generic500 rather than model-validation400.  Unknown fields are ignored. PUT omitted/null fields preserve, false/zero/empty strings replace subject to model validation, empty arrays clear. PUT body null is an empty partial update. POST null body fails required name. Cross-field rules and storage validation are executable runtime/prose constraints; this finite schema describes JSON types rather than inventing unsupported conditional keywords.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Literal value. POST requires non-null nonempty; PUT omitted/null preserves. Empty PUT name fails model validation."
+                  },
+                  "enabled": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "POST omitted/null defaults true; PUT omitted/null preserves; false replaces."
+                  },
+                  "priority": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807,
+                    "description": "POST omitted/null defaults0; PUT omitted/null preserves; zero/negative replaces."
+                  },
+                  "error_codes": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": -9223372036854775808,
+                      "maximum": 9223372036854775807
+                    },
+                    "description": "POST omitted/null becomes []; PUT omitted/null preserves, [] clears. Null elements bind zero or empty string. Literal duplicates retained."
+                  },
+                  "keywords": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": "POST omitted/null becomes []; PUT omitted/null preserves, [] clears. Null elements bind zero or empty string. Literal duplicates retained."
+                  },
+                  "match_mode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "POST omitted/null/empty defaults any; PUT omitted/null retains, empty is invalid. Model accepts only any/all."
+                  },
+                  "platforms": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": "POST omitted/null becomes []; PUT omitted/null preserves, [] clears. Null elements bind zero or empty string. Literal duplicates retained."
+                  },
+                  "passthrough_code": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "POST omitted/null defaults true; PUT omitted/null preserves; false replaces."
+                  },
+                  "response_code": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807,
+                    "description": "PUT omitted/null preserves; zero/negative accepted only while passthrough_code=true. No HTTP upper bound."
+                  },
+                  "passthrough_body": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "POST omitted/null defaults true; PUT omitted/null preserves; false replaces."
+                  },
+                  "custom_message": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "PUT omitted/null preserves; empty replaces only if passthrough_body=true."
+                  },
+                  "skip_monitoring": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "POST omitted/null defaults false; PUT omitted/null preserves; false replaces."
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "PUT omitted/null preserves; empty string replaces; no explicit null clear."
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/error-passthrough-rules/{id}": {
+      "get": {
+        "operationId": "get_admin_error_passthrough_rules_id",
+        "summary": "GET /api/v1/admin/error-passthrough-rules/{id}",
+        "description": "Admin authentication accepts JWT, x-api-key, or the existing WebSocket-upgrade JWT carrier (the response remains JSON). Upgrade JWT takes precedence; otherwise x-api-key precedes Authorization. Stored admin role, active/token/session validation, panel Global rate limiting, audit and compliance acknowledgement apply. No Heavy limiter or step-up on these five routes. Repository converts Ent not-found to nil; handler returns404 for nil.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "priority": {
+                          "type": "integer",
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "error_codes": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer",
+                            "minimum": -9223372036854775808,
+                            "maximum": 9223372036854775807
+                          }
+                        },
+                        "keywords": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "match_mode": {
+                          "type": "string"
+                        },
+                        "platforms": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "passthrough_code": {
+                          "type": "boolean"
+                        },
+                        "response_code": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "passthrough_body": {
+                          "type": "boolean"
+                        },
+                        "custom_message": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "skip_monitoring": {
+                          "type": "boolean"
+                        },
+                        "description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "enabled",
+                        "priority",
+                        "error_codes",
+                        "keywords",
+                        "match_mode",
+                        "platforms",
+                        "passthrough_code",
+                        "response_code",
+                        "passthrough_body",
+                        "custom_message",
+                        "skip_monitoring",
+                        "description",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Admin JWT/key authentication or session failure before request repository access; upgrade-JWT precedence is described on the operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated stored user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        403,
+                        "FORBIDDEN"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel Global rate limit exceeded; Retry-After is positive seconds. No Heavy or key-creation limiter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Authentication/settings/compliance storage failure, or generic repository/Ent error; internal details are not exposed. GetByID storage failures map here.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signed decimal int64 path ID. Zero/negative IDs still reach the repository; no JSON-body or query validation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Initial repository lookup returned nil (Ent row absent). Handler returns numeric404 with message Rule not found and no reason.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Rule not found"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            },
+            "description": "Signed decimal int64 via strconv.ParseInt; plus sign/leading zeros accepted, whitespace and overflow rejected. Zero/negative are sent to repository and normally return404."
+          }
+        ]
+      },
+      "put": {
+        "operationId": "put_admin_error_passthrough_rules_id",
+        "summary": "PUT /api/v1/admin/error-passthrough-rules/{id}",
+        "description": "Admin authentication accepts JWT, x-api-key, or the existing WebSocket-upgrade JWT carrier (the response remains JSON). Upgrade JWT takes precedence; otherwise x-api-key precedes Authorization. Stored admin role, active/token/session validation, panel Global rate limiting, audit and compliance acknowledgement apply. No Heavy limiter or step-up on these five routes. No trimming or deduplication. Model validation requires a nonempty name, match_mode any/all and at least one nonempty error_codes or keywords array; empty string elements still count. If passthrough_code=false, response_code must be non-null and positive (no HTTP-code upper bound). If passthrough_body=false, custom_message must be non-null and nonempty; whitespace passes. Platforms are not enum-validated. Integers use signed native 64-bit integer JSON tokens on the supported build, including negative priorities and unrestricted error_codes. Name length is checked by Ent (100-byte maximum), and its failure currently maps to generic500 rather than model-validation400. Successful writes return the repository result; there is no additional GetByID after writing. Cache invalidation, reload List, cache Set and notification failures are logged and do not change a successful write response. A failed reload clears local cached rules. The Ent update builder reads the saved row inside its transaction; a missing row or read failure rolls back and maps to generic500.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "priority": {
+                          "type": "integer",
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "error_codes": {
+                          "type": "array",
+                          "items": {
+                            "type": "integer",
+                            "minimum": -9223372036854775808,
+                            "maximum": 9223372036854775807
+                          }
+                        },
+                        "keywords": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "match_mode": {
+                          "type": "string"
+                        },
+                        "platforms": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "passthrough_code": {
+                          "type": "boolean"
+                        },
+                        "response_code": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "minimum": -9223372036854775808,
+                          "maximum": 9223372036854775807
+                        },
+                        "passthrough_body": {
+                          "type": "boolean"
+                        },
+                        "custom_message": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "skip_monitoring": {
+                          "type": "boolean"
+                        },
+                        "description": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "enabled",
+                        "priority",
+                        "error_codes",
+                        "keywords",
+                        "match_mode",
+                        "platforms",
+                        "passthrough_code",
+                        "response_code",
+                        "passthrough_body",
+                        "custom_message",
+                        "skip_monitoring",
+                        "description",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Admin JWT/key authentication or session failure before request repository access; upgrade-JWT precedence is described on the operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated stored user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        403,
+                        "FORBIDDEN"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel Global rate limit exceeded; Retry-After is positive seconds. No Heavy or key-creation limiter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Authentication/settings/compliance storage failure, or generic repository/Ent error; internal details are not exposed. Ent name-length validation and write-time not-found also map here. Cache reload/notification failures after successful writes do not.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signed decimal int64 path ID. JSON binding or model validation: name, match_mode, conditions, conditional response_code/custom_message. No required query.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Initial repository lookup returned nil (Ent row absent). Handler returns numeric404 with message Rule not found and no reason.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 404
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "Rule not found"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            },
+            "description": "Signed decimal int64 via strconv.ParseInt; plus sign/leading zeros accepted, whitespace and overflow rejected. Zero/negative are sent to repository and normally return404."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "No trimming or deduplication. Model validation requires a nonempty name, match_mode any/all and at least one nonempty error_codes or keywords array; empty string elements still count. If passthrough_code=false, response_code must be non-null and positive (no HTTP-code upper bound). If passthrough_body=false, custom_message must be non-null and nonempty; whitespace passes. Platforms are not enum-validated. Integers use signed native 64-bit integer JSON tokens on the supported build, including negative priorities and unrestricted error_codes. Name length is checked by Ent (100-byte maximum), and its failure currently maps to generic500 rather than model-validation400.  Unknown fields are ignored. PUT omitted/null fields preserve, false/zero/empty strings replace subject to model validation, empty arrays clear. PUT body null is an empty partial update. POST null body fails required name. Cross-field rules and storage validation are executable runtime/prose constraints; this finite schema describes JSON types rather than inventing unsupported conditional keywords.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "name": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Literal value. POST requires non-null nonempty; PUT omitted/null preserves. Empty PUT name fails model validation."
+                  },
+                  "enabled": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "POST omitted/null defaults true; PUT omitted/null preserves; false replaces."
+                  },
+                  "priority": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807,
+                    "description": "POST omitted/null defaults0; PUT omitted/null preserves; zero/negative replaces."
+                  },
+                  "error_codes": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": -9223372036854775808,
+                      "maximum": 9223372036854775807
+                    },
+                    "description": "POST omitted/null becomes []; PUT omitted/null preserves, [] clears. Null elements bind zero or empty string. Literal duplicates retained."
+                  },
+                  "keywords": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": "POST omitted/null becomes []; PUT omitted/null preserves, [] clears. Null elements bind zero or empty string. Literal duplicates retained."
+                  },
+                  "match_mode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "POST omitted/null/empty defaults any; PUT omitted/null retains, empty is invalid. Model accepts only any/all."
+                  },
+                  "platforms": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": "POST omitted/null becomes []; PUT omitted/null preserves, [] clears. Null elements bind zero or empty string. Literal duplicates retained."
+                  },
+                  "passthrough_code": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "POST omitted/null defaults true; PUT omitted/null preserves; false replaces."
+                  },
+                  "response_code": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": -9223372036854775808,
+                    "maximum": 9223372036854775807,
+                    "description": "PUT omitted/null preserves; zero/negative accepted only while passthrough_code=true. No HTTP upper bound."
+                  },
+                  "passthrough_body": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "POST omitted/null defaults true; PUT omitted/null preserves; false replaces."
+                  },
+                  "custom_message": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "PUT omitted/null preserves; empty replaces only if passthrough_body=true."
+                  },
+                  "skip_monitoring": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ],
+                    "description": "POST omitted/null defaults false; PUT omitted/null preserves; false replaces."
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "PUT omitted/null preserves; empty string replaces; no explicit null clear."
+                  }
+                },
+                "required": [],
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete_admin_error_passthrough_rules_id",
+        "summary": "DELETE /api/v1/admin/error-passthrough-rules/{id}",
+        "description": "Admin authentication accepts JWT, x-api-key, or the existing WebSocket-upgrade JWT carrier (the response remains JSON). Upgrade JWT takes precedence; otherwise x-api-key precedes Authorization. Stored admin role, active/token/session validation, panel Global rate limiting, audit and compliance acknowledgement apply. No Heavy limiter or step-up on these five routes. Deletes by ID without a preliminary existence read. Ent DeleteOneID with zero affected rows is currently a generic500, not404. Successful deletion returns the handler message Rule deleted successfully; there is no additional GetByID after deleting. Cache invalidation, reload List, cache Set and notification failures are logged and do not change a successful write response. A failed reload clears local cached rules.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "AdminAPIKey": []
+          },
+          {
+            "AdminUpgradeJWT": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "const": "Rule deleted successfully"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Admin JWT/key authentication or session failure before request repository access; upgrade-JWT precedence is described on the operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated stored user is not an administrator.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        403,
+                        "FORBIDDEN"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Administrator has not acknowledged the current compliance version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "ADMIN_COMPLIANCE_ACK_REQUIRED"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "document_path_zh": {
+                          "type": "string"
+                        },
+                        "document_path_en": {
+                          "type": "string"
+                        },
+                        "document_url_zh": {
+                          "type": "string"
+                        },
+                        "document_url_en": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "document_path_zh",
+                        "document_path_en",
+                        "document_url_zh",
+                        "document_url_en"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "metadata"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Configured panel Global rate limit exceeded; Retry-After is positive seconds. No Heavy or key-creation limiter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "const": "RATE_LIMITED"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive whole seconds until retry; emitted by the real panel limiter.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Authentication/settings/compliance storage failure, or generic repository/Ent error; internal details are not exposed. Ent DeleteOneID zero affected rows maps here; cache reload/notification failure after successful delete does not.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signed decimal int64 path ID. Zero/negative IDs still reach the repository; no JSON-body or query validation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 400
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "int64"
+            },
+            "description": "Signed decimal int64 via strconv.ParseInt; plus sign/leading zeros accepted, whitespace and overflow rejected. Zero/negative are sent to repository and normally return404."
           }
         ]
       }

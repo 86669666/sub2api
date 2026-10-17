@@ -818,6 +818,10 @@ func TestOpenAPIResponses(t *testing.T) {
 		for method, op := range methods {
 			t.Run(method+" "+path, func(t *testing.T) {
 				key := strings.ToUpper(method) + " " + path
+				if openAPIA10Operation(key) {
+					openAPIA10VerifyResponses(t, method, path, op)
+					return
+				}
 				if openAPIA9Operation(key) {
 					openAPIA9VerifyResponses(t, method, path, op)
 					return
