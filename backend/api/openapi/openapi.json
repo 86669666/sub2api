@@ -1,12 +1,12 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Sub2API normal-mode HTTP contract — A0+A1+A2+A3 subset",
-    "version": "0.4.0",
+    "title": "Sub2API normal-mode HTTP contract — A0+A1+A2+A3+A4 subset",
+    "version": "0.5.0",
     "description": "Partial executable contract. Other routes are individually tracked in route-inventory.json. Bootstrap setup and provider protocols are not covered by this document."
   },
-  "x-contract-scope": "normal-mode A0+A1+A2+A3 partial",
-  "x-source-baseline": "a1d4de9b10054ad082d41588a5db85411cc9ca40",
+  "x-contract-scope": "normal-mode A0+A1+A2+A3+A4 partial",
+  "x-source-baseline": "8bb7ebdfe3a198fbb689e0d68cf337f2971b4e0c",
   "x-schema-validation-profile": "a3-usage-request-v5",
   "paths": {
     "/health": {
@@ -13734,6 +13734,2614 @@
             }
           }
         ]
+      }
+    },
+    "/api/v1/subscriptions": {
+      "get": {
+        "operationId": "listUserSubscriptions",
+        "summary": "List all own subscriptions",
+        "description": "JWT self-service endpoint. Signature, expiry, active user, token version and configured session binding are validated. Backend mode denies non-admin users. Global panel user limit applies (no heavy-route limiter); limiter errors fail open. User scope comes only from the authenticated subject. Query parameters including user_id, group_id, page, page_size and limit are ignored; no pagination or request body. JSON only, no streaming. Returns [] for no rows. Expired display windows are cleared and active subscriptions past expiry are displayed as expired; normalization does not write storage.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "description": "Optional preferred language for nested group name/description and summary/progress names when a listed group is present. Missing or unsupported translations fall back to original text; translation maps are omitted.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful subscription response; arrays are never null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "user_id": {
+                            "type": "integer"
+                          },
+                          "group_id": {
+                            "type": "integer"
+                          },
+                          "starts_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "expires_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "daily_window_start": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "weekly_window_start": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "monthly_window_start": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "daily_usage_usd": {
+                            "type": "number"
+                          },
+                          "weekly_usage_usd": {
+                            "type": "number"
+                          },
+                          "monthly_usage_usd": {
+                            "type": "number"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "revoked_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "username": {
+                                "type": "string"
+                              },
+                              "role": {
+                                "type": "string"
+                              },
+                              "balance": {
+                                "type": "number"
+                              },
+                              "frozen_balance": {
+                                "type": "number"
+                              },
+                              "concurrency": {
+                                "type": "integer"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "allowed_groups": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "integer"
+                                }
+                              },
+                              "last_active_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "deleted_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "balance_notify_enabled": {
+                                "type": "boolean"
+                              },
+                              "balance_notify_threshold_type": {
+                                "type": "string"
+                              },
+                              "balance_notify_threshold": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "balance_notify_extra_emails": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "email": {
+                                      "type": "string"
+                                    },
+                                    "disabled": {
+                                      "type": "boolean"
+                                    },
+                                    "verified": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "email",
+                                    "disabled",
+                                    "verified"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "total_recharged": {
+                                "type": "number"
+                              },
+                              "rpm_limit": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "email",
+                              "username",
+                              "role",
+                              "balance",
+                              "frozen_balance",
+                              "concurrency",
+                              "status",
+                              "allowed_groups",
+                              "created_at",
+                              "updated_at",
+                              "balance_notify_enabled",
+                              "balance_notify_threshold_type",
+                              "balance_notify_threshold",
+                              "balance_notify_extra_emails",
+                              "total_recharged",
+                              "rpm_limit"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "group": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "platform": {
+                                "type": "string"
+                              },
+                              "rate_multiplier": {
+                                "type": "number"
+                              },
+                              "is_exclusive": {
+                                "type": "boolean"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "subscription_type": {
+                                "type": "string"
+                              },
+                              "daily_limit_usd": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "weekly_limit_usd": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "monthly_limit_usd": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "long_context_pricing_enabled": {
+                                "type": "boolean"
+                              },
+                              "allow_image_generation": {
+                                "type": "boolean"
+                              },
+                              "allow_batch_image_generation": {
+                                "type": "boolean"
+                              },
+                              "image_rate_independent": {
+                                "type": "boolean"
+                              },
+                              "image_rate_multiplier": {
+                                "type": "number"
+                              },
+                              "batch_image_discount_multiplier": {
+                                "type": "number"
+                              },
+                              "batch_image_hold_multiplier": {
+                                "type": "number"
+                              },
+                              "video_rate_independent": {
+                                "type": "boolean"
+                              },
+                              "video_rate_multiplier": {
+                                "type": "number"
+                              },
+                              "peak_rate_enabled": {
+                                "type": "boolean"
+                              },
+                              "peak_start": {
+                                "type": "string"
+                              },
+                              "peak_end": {
+                                "type": "string"
+                              },
+                              "peak_rate_multiplier": {
+                                "type": "number"
+                              },
+                              "image_price_1k": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "image_price_2k": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "image_price_4k": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "video_price_480p": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "video_price_720p": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "video_price_1080p": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "video_model_prices": {
+                                "type": "object",
+                                "properties": {},
+                                "required": [],
+                                "additionalProperties": {
+                                  "type": "object",
+                                  "properties": {},
+                                  "required": [],
+                                  "additionalProperties": {
+                                    "type": "number"
+                                  }
+                                }
+                              },
+                              "web_search_price_per_call": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "search_price_per_1k": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "audio_realtime_price_per_min": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "audio_tts_price_per_million_chars": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "audio_stt_price_per_hour": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "claude_code_only": {
+                                "type": "boolean"
+                              },
+                              "fallback_group_id": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              "fallback_group_id_on_invalid_request": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              "allow_messages_dispatch": {
+                                "type": "boolean"
+                              },
+                              "allow_live": {
+                                "type": "boolean"
+                              },
+                              "require_oauth_only": {
+                                "type": "boolean"
+                              },
+                              "require_privacy_set": {
+                                "type": "boolean"
+                              },
+                              "rpm_limit": {
+                                "type": "integer"
+                              },
+                              "max_reasoning_effort": {
+                                "type": "string"
+                              },
+                              "max_reasoning_effort_over_limit": {
+                                "type": "string"
+                              },
+                              "reasoning_effort_mappings": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": "string"
+                                    },
+                                    "match_type": {
+                                      "type": "string"
+                                    },
+                                    "model": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "from",
+                                    "to"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "description",
+                              "platform",
+                              "rate_multiplier",
+                              "is_exclusive",
+                              "status",
+                              "subscription_type",
+                              "daily_limit_usd",
+                              "weekly_limit_usd",
+                              "monthly_limit_usd",
+                              "long_context_pricing_enabled",
+                              "allow_image_generation",
+                              "allow_batch_image_generation",
+                              "image_rate_independent",
+                              "image_rate_multiplier",
+                              "batch_image_discount_multiplier",
+                              "batch_image_hold_multiplier",
+                              "video_rate_independent",
+                              "video_rate_multiplier",
+                              "peak_rate_enabled",
+                              "peak_start",
+                              "peak_end",
+                              "peak_rate_multiplier",
+                              "image_price_1k",
+                              "image_price_2k",
+                              "image_price_4k",
+                              "video_price_480p",
+                              "video_price_720p",
+                              "video_price_1080p",
+                              "web_search_price_per_call",
+                              "search_price_per_1k",
+                              "audio_realtime_price_per_min",
+                              "audio_tts_price_per_million_chars",
+                              "audio_stt_price_per_hour",
+                              "claude_code_only",
+                              "fallback_group_id",
+                              "fallback_group_id_on_invalid_request",
+                              "allow_messages_dispatch",
+                              "allow_live",
+                              "require_oauth_only",
+                              "require_privacy_set",
+                              "rpm_limit",
+                              "max_reasoning_effort",
+                              "max_reasoning_effort_over_limit",
+                              "reasoning_effort_mappings",
+                              "created_at",
+                              "updated_at"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "user_id",
+                          "group_id",
+                          "starts_at",
+                          "expires_at",
+                          "status",
+                          "daily_window_start",
+                          "weekly_window_start",
+                          "monthly_window_start",
+                          "daily_usage_usd",
+                          "weekly_usage_usd",
+                          "monthly_usage_usd",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/active": {
+      "get": {
+        "operationId": "listActiveUserSubscriptions",
+        "summary": "List active own subscriptions",
+        "description": "JWT self-service endpoint. Signature, expiry, active user, token version and configured session binding are validated. Backend mode denies non-admin users. Global panel user limit applies (no heavy-route limiter); limiter errors fail open. User scope comes only from the authenticated subject. Query parameters including user_id, group_id, page, page_size and limit are ignored; no pagination or request body. JSON only, no streaming. Requests active subscriptions from the repository; expired display windows are cleared. Returns [] for no rows.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "description": "Optional preferred language for nested group name/description and summary/progress names when a listed group is present. Missing or unsupported translations fall back to original text; translation maps are omitted.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful subscription response; arrays are never null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "user_id": {
+                            "type": "integer"
+                          },
+                          "group_id": {
+                            "type": "integer"
+                          },
+                          "starts_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "expires_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "daily_window_start": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "weekly_window_start": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "monthly_window_start": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          },
+                          "daily_usage_usd": {
+                            "type": "number"
+                          },
+                          "weekly_usage_usd": {
+                            "type": "number"
+                          },
+                          "monthly_usage_usd": {
+                            "type": "number"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "revoked_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "username": {
+                                "type": "string"
+                              },
+                              "role": {
+                                "type": "string"
+                              },
+                              "balance": {
+                                "type": "number"
+                              },
+                              "frozen_balance": {
+                                "type": "number"
+                              },
+                              "concurrency": {
+                                "type": "integer"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "allowed_groups": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "integer"
+                                }
+                              },
+                              "last_active_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "deleted_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "balance_notify_enabled": {
+                                "type": "boolean"
+                              },
+                              "balance_notify_threshold_type": {
+                                "type": "string"
+                              },
+                              "balance_notify_threshold": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "balance_notify_extra_emails": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "email": {
+                                      "type": "string"
+                                    },
+                                    "disabled": {
+                                      "type": "boolean"
+                                    },
+                                    "verified": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "email",
+                                    "disabled",
+                                    "verified"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "total_recharged": {
+                                "type": "number"
+                              },
+                              "rpm_limit": {
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "email",
+                              "username",
+                              "role",
+                              "balance",
+                              "frozen_balance",
+                              "concurrency",
+                              "status",
+                              "allowed_groups",
+                              "created_at",
+                              "updated_at",
+                              "balance_notify_enabled",
+                              "balance_notify_threshold_type",
+                              "balance_notify_threshold",
+                              "balance_notify_extra_emails",
+                              "total_recharged",
+                              "rpm_limit"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "group": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "platform": {
+                                "type": "string"
+                              },
+                              "rate_multiplier": {
+                                "type": "number"
+                              },
+                              "is_exclusive": {
+                                "type": "boolean"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "subscription_type": {
+                                "type": "string"
+                              },
+                              "daily_limit_usd": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "weekly_limit_usd": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "monthly_limit_usd": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "long_context_pricing_enabled": {
+                                "type": "boolean"
+                              },
+                              "allow_image_generation": {
+                                "type": "boolean"
+                              },
+                              "allow_batch_image_generation": {
+                                "type": "boolean"
+                              },
+                              "image_rate_independent": {
+                                "type": "boolean"
+                              },
+                              "image_rate_multiplier": {
+                                "type": "number"
+                              },
+                              "batch_image_discount_multiplier": {
+                                "type": "number"
+                              },
+                              "batch_image_hold_multiplier": {
+                                "type": "number"
+                              },
+                              "video_rate_independent": {
+                                "type": "boolean"
+                              },
+                              "video_rate_multiplier": {
+                                "type": "number"
+                              },
+                              "peak_rate_enabled": {
+                                "type": "boolean"
+                              },
+                              "peak_start": {
+                                "type": "string"
+                              },
+                              "peak_end": {
+                                "type": "string"
+                              },
+                              "peak_rate_multiplier": {
+                                "type": "number"
+                              },
+                              "image_price_1k": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "image_price_2k": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "image_price_4k": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "video_price_480p": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "video_price_720p": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "video_price_1080p": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "video_model_prices": {
+                                "type": "object",
+                                "properties": {},
+                                "required": [],
+                                "additionalProperties": {
+                                  "type": "object",
+                                  "properties": {},
+                                  "required": [],
+                                  "additionalProperties": {
+                                    "type": "number"
+                                  }
+                                }
+                              },
+                              "web_search_price_per_call": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "search_price_per_1k": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "audio_realtime_price_per_min": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "audio_tts_price_per_million_chars": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "audio_stt_price_per_hour": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "claude_code_only": {
+                                "type": "boolean"
+                              },
+                              "fallback_group_id": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              "fallback_group_id_on_invalid_request": {
+                                "type": [
+                                  "integer",
+                                  "null"
+                                ]
+                              },
+                              "allow_messages_dispatch": {
+                                "type": "boolean"
+                              },
+                              "allow_live": {
+                                "type": "boolean"
+                              },
+                              "require_oauth_only": {
+                                "type": "boolean"
+                              },
+                              "require_privacy_set": {
+                                "type": "boolean"
+                              },
+                              "rpm_limit": {
+                                "type": "integer"
+                              },
+                              "max_reasoning_effort": {
+                                "type": "string"
+                              },
+                              "max_reasoning_effort_over_limit": {
+                                "type": "string"
+                              },
+                              "reasoning_effort_mappings": {
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "from": {
+                                      "type": "string"
+                                    },
+                                    "to": {
+                                      "type": "string"
+                                    },
+                                    "match_type": {
+                                      "type": "string"
+                                    },
+                                    "model": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "from",
+                                    "to"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "description",
+                              "platform",
+                              "rate_multiplier",
+                              "is_exclusive",
+                              "status",
+                              "subscription_type",
+                              "daily_limit_usd",
+                              "weekly_limit_usd",
+                              "monthly_limit_usd",
+                              "long_context_pricing_enabled",
+                              "allow_image_generation",
+                              "allow_batch_image_generation",
+                              "image_rate_independent",
+                              "image_rate_multiplier",
+                              "batch_image_discount_multiplier",
+                              "batch_image_hold_multiplier",
+                              "video_rate_independent",
+                              "video_rate_multiplier",
+                              "peak_rate_enabled",
+                              "peak_start",
+                              "peak_end",
+                              "peak_rate_multiplier",
+                              "image_price_1k",
+                              "image_price_2k",
+                              "image_price_4k",
+                              "video_price_480p",
+                              "video_price_720p",
+                              "video_price_1080p",
+                              "web_search_price_per_call",
+                              "search_price_per_1k",
+                              "audio_realtime_price_per_min",
+                              "audio_tts_price_per_million_chars",
+                              "audio_stt_price_per_hour",
+                              "claude_code_only",
+                              "fallback_group_id",
+                              "fallback_group_id_on_invalid_request",
+                              "allow_messages_dispatch",
+                              "allow_live",
+                              "require_oauth_only",
+                              "require_privacy_set",
+                              "rpm_limit",
+                              "max_reasoning_effort",
+                              "max_reasoning_effort_over_limit",
+                              "reasoning_effort_mappings",
+                              "created_at",
+                              "updated_at"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "user_id",
+                          "group_id",
+                          "starts_at",
+                          "expires_at",
+                          "status",
+                          "daily_window_start",
+                          "weekly_window_start",
+                          "monthly_window_start",
+                          "daily_usage_usd",
+                          "weekly_usage_usd",
+                          "monthly_usage_usd",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/progress": {
+      "get": {
+        "operationId": "getUserSubscriptionsProgress",
+        "summary": "Get active subscription progress",
+        "description": "JWT self-service endpoint. Signature, expiry, active user, token version and configured session binding are validated. Backend mode denies non-admin users. Global panel user limit applies (no heavy-route limiter); limiter errors fail open. User scope comes only from the authenticated subject. Query parameters including user_id, group_id, page, page_size and limit are ignored; no pagination or request body. JSON only, no streaming. Returns wrapper objects, not bare progress. First lists active subscriptions and normalizes their display windows, then reads each subscription again for progress. Any per-item subscription/group lookup failure skips that item; even all skipped returns 200 with []. Progress may therefore reflect stored window values while the wrapper subscription is normalized. Optional daily/weekly/monthly windows are omitted unless a positive limit and window start exist. Remaining amounts clamp at 0, percentages at 100, reset seconds at 0; days remaining rounds up. Group lookup fallback is used when absent; progress name localization only uses the originally listed group, so fallback-only names remain untranslated.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "description": "Optional preferred language for nested group name/description and summary/progress names when a listed group is present. Missing or unsupported translations fall back to original text; translation maps are omitted.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful subscription response; arrays are never null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "subscription": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "user_id": {
+                                "type": "integer"
+                              },
+                              "group_id": {
+                                "type": "integer"
+                              },
+                              "starts_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "expires_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "daily_window_start": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "weekly_window_start": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "monthly_window_start": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "format": "date-time"
+                              },
+                              "daily_usage_usd": {
+                                "type": "number"
+                              },
+                              "weekly_usage_usd": {
+                                "type": "number"
+                              },
+                              "monthly_usage_usd": {
+                                "type": "number"
+                              },
+                              "created_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updated_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "revoked_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "user": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "integer"
+                                  },
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "username": {
+                                    "type": "string"
+                                  },
+                                  "role": {
+                                    "type": "string"
+                                  },
+                                  "balance": {
+                                    "type": "number"
+                                  },
+                                  "frozen_balance": {
+                                    "type": "number"
+                                  },
+                                  "concurrency": {
+                                    "type": "integer"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "allowed_groups": {
+                                    "type": [
+                                      "array",
+                                      "null"
+                                    ],
+                                    "items": {
+                                      "type": "integer"
+                                    }
+                                  },
+                                  "last_active_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "created_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updated_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "deleted_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "balance_notify_enabled": {
+                                    "type": "boolean"
+                                  },
+                                  "balance_notify_threshold_type": {
+                                    "type": "string"
+                                  },
+                                  "balance_notify_threshold": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "balance_notify_extra_emails": {
+                                    "type": [
+                                      "array",
+                                      "null"
+                                    ],
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "email": {
+                                          "type": "string"
+                                        },
+                                        "disabled": {
+                                          "type": "boolean"
+                                        },
+                                        "verified": {
+                                          "type": "boolean"
+                                        }
+                                      },
+                                      "required": [
+                                        "email",
+                                        "disabled",
+                                        "verified"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "total_recharged": {
+                                    "type": "number"
+                                  },
+                                  "rpm_limit": {
+                                    "type": "integer"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "email",
+                                  "username",
+                                  "role",
+                                  "balance",
+                                  "frozen_balance",
+                                  "concurrency",
+                                  "status",
+                                  "allowed_groups",
+                                  "created_at",
+                                  "updated_at",
+                                  "balance_notify_enabled",
+                                  "balance_notify_threshold_type",
+                                  "balance_notify_threshold",
+                                  "balance_notify_extra_emails",
+                                  "total_recharged",
+                                  "rpm_limit"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "group": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "integer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "platform": {
+                                    "type": "string"
+                                  },
+                                  "rate_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "is_exclusive": {
+                                    "type": "boolean"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "subscription_type": {
+                                    "type": "string"
+                                  },
+                                  "daily_limit_usd": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "weekly_limit_usd": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "monthly_limit_usd": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "long_context_pricing_enabled": {
+                                    "type": "boolean"
+                                  },
+                                  "allow_image_generation": {
+                                    "type": "boolean"
+                                  },
+                                  "allow_batch_image_generation": {
+                                    "type": "boolean"
+                                  },
+                                  "image_rate_independent": {
+                                    "type": "boolean"
+                                  },
+                                  "image_rate_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "batch_image_discount_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "batch_image_hold_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "video_rate_independent": {
+                                    "type": "boolean"
+                                  },
+                                  "video_rate_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "peak_rate_enabled": {
+                                    "type": "boolean"
+                                  },
+                                  "peak_start": {
+                                    "type": "string"
+                                  },
+                                  "peak_end": {
+                                    "type": "string"
+                                  },
+                                  "peak_rate_multiplier": {
+                                    "type": "number"
+                                  },
+                                  "image_price_1k": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "image_price_2k": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "image_price_4k": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "video_price_480p": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "video_price_720p": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "video_price_1080p": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "video_model_prices": {
+                                    "type": "object",
+                                    "properties": {},
+                                    "required": [],
+                                    "additionalProperties": {
+                                      "type": "object",
+                                      "properties": {},
+                                      "required": [],
+                                      "additionalProperties": {
+                                        "type": "number"
+                                      }
+                                    }
+                                  },
+                                  "web_search_price_per_call": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "search_price_per_1k": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "audio_realtime_price_per_min": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "audio_tts_price_per_million_chars": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "audio_stt_price_per_hour": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "claude_code_only": {
+                                    "type": "boolean"
+                                  },
+                                  "fallback_group_id": {
+                                    "type": [
+                                      "integer",
+                                      "null"
+                                    ]
+                                  },
+                                  "fallback_group_id_on_invalid_request": {
+                                    "type": [
+                                      "integer",
+                                      "null"
+                                    ]
+                                  },
+                                  "allow_messages_dispatch": {
+                                    "type": "boolean"
+                                  },
+                                  "allow_live": {
+                                    "type": "boolean"
+                                  },
+                                  "require_oauth_only": {
+                                    "type": "boolean"
+                                  },
+                                  "require_privacy_set": {
+                                    "type": "boolean"
+                                  },
+                                  "rpm_limit": {
+                                    "type": "integer"
+                                  },
+                                  "max_reasoning_effort": {
+                                    "type": "string"
+                                  },
+                                  "max_reasoning_effort_over_limit": {
+                                    "type": "string"
+                                  },
+                                  "reasoning_effort_mappings": {
+                                    "type": [
+                                      "array",
+                                      "null"
+                                    ],
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "from": {
+                                          "type": "string"
+                                        },
+                                        "to": {
+                                          "type": "string"
+                                        },
+                                        "match_type": {
+                                          "type": "string"
+                                        },
+                                        "model": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "from",
+                                        "to"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  },
+                                  "created_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updated_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "description",
+                                  "platform",
+                                  "rate_multiplier",
+                                  "is_exclusive",
+                                  "status",
+                                  "subscription_type",
+                                  "daily_limit_usd",
+                                  "weekly_limit_usd",
+                                  "monthly_limit_usd",
+                                  "long_context_pricing_enabled",
+                                  "allow_image_generation",
+                                  "allow_batch_image_generation",
+                                  "image_rate_independent",
+                                  "image_rate_multiplier",
+                                  "batch_image_discount_multiplier",
+                                  "batch_image_hold_multiplier",
+                                  "video_rate_independent",
+                                  "video_rate_multiplier",
+                                  "peak_rate_enabled",
+                                  "peak_start",
+                                  "peak_end",
+                                  "peak_rate_multiplier",
+                                  "image_price_1k",
+                                  "image_price_2k",
+                                  "image_price_4k",
+                                  "video_price_480p",
+                                  "video_price_720p",
+                                  "video_price_1080p",
+                                  "web_search_price_per_call",
+                                  "search_price_per_1k",
+                                  "audio_realtime_price_per_min",
+                                  "audio_tts_price_per_million_chars",
+                                  "audio_stt_price_per_hour",
+                                  "claude_code_only",
+                                  "fallback_group_id",
+                                  "fallback_group_id_on_invalid_request",
+                                  "allow_messages_dispatch",
+                                  "allow_live",
+                                  "require_oauth_only",
+                                  "require_privacy_set",
+                                  "rpm_limit",
+                                  "max_reasoning_effort",
+                                  "max_reasoning_effort_over_limit",
+                                  "reasoning_effort_mappings",
+                                  "created_at",
+                                  "updated_at"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "user_id",
+                              "group_id",
+                              "starts_at",
+                              "expires_at",
+                              "status",
+                              "daily_window_start",
+                              "weekly_window_start",
+                              "monthly_window_start",
+                              "daily_usage_usd",
+                              "weekly_usage_usd",
+                              "monthly_usage_usd",
+                              "created_at",
+                              "updated_at"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "progress": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "group_name": {
+                                "type": "string"
+                              },
+                              "expires_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "expires_in_days": {
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "daily": {
+                                "type": "object",
+                                "properties": {
+                                  "limit_usd": {
+                                    "type": "number"
+                                  },
+                                  "used_usd": {
+                                    "type": "number"
+                                  },
+                                  "remaining_usd": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "percentage": {
+                                    "type": "number",
+                                    "maximum": 100
+                                  },
+                                  "window_start": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "resets_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "resets_in_seconds": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  }
+                                },
+                                "required": [
+                                  "limit_usd",
+                                  "used_usd",
+                                  "remaining_usd",
+                                  "percentage",
+                                  "window_start",
+                                  "resets_at",
+                                  "resets_in_seconds"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "weekly": {
+                                "type": "object",
+                                "properties": {
+                                  "limit_usd": {
+                                    "type": "number"
+                                  },
+                                  "used_usd": {
+                                    "type": "number"
+                                  },
+                                  "remaining_usd": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "percentage": {
+                                    "type": "number",
+                                    "maximum": 100
+                                  },
+                                  "window_start": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "resets_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "resets_in_seconds": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  }
+                                },
+                                "required": [
+                                  "limit_usd",
+                                  "used_usd",
+                                  "remaining_usd",
+                                  "percentage",
+                                  "window_start",
+                                  "resets_at",
+                                  "resets_in_seconds"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "monthly": {
+                                "type": "object",
+                                "properties": {
+                                  "limit_usd": {
+                                    "type": "number"
+                                  },
+                                  "used_usd": {
+                                    "type": "number"
+                                  },
+                                  "remaining_usd": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "percentage": {
+                                    "type": "number",
+                                    "maximum": 100
+                                  },
+                                  "window_start": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "resets_at": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "resets_in_seconds": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                  }
+                                },
+                                "required": [
+                                  "limit_usd",
+                                  "used_usd",
+                                  "remaining_usd",
+                                  "percentage",
+                                  "window_start",
+                                  "resets_at",
+                                  "resets_in_seconds"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "group_name",
+                              "expires_at",
+                              "expires_in_days"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "subscription",
+                          "progress"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/subscriptions/summary": {
+      "get": {
+        "operationId": "getUserSubscriptionsSummary",
+        "summary": "Summarize active own subscriptions",
+        "description": "JWT self-service endpoint. Signature, expiry, active user, token version and configured session binding are validated. Backend mode denies non-admin users. Global panel user limit applies (no heavy-route limiter); limiter errors fail open. User scope comes only from the authenticated subject. Query parameters including user_id, group_id, page, page_size and limit are ignored; no pagination or request body. JSON only, no streaming. active_count is the returned active list length; total_used_usd sums normalized monthly usage. Each item always includes id, group_id, group_name and status. Zero usage/limit values and zero expires_at are omitted, not null. Without a group, group_name is empty and limit fields are absent. No progress percentages or days_remaining fields.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "description": "Optional preferred language for nested group name/description and summary/progress names when a listed group is present. Missing or unsupported translations fall back to original text; translation maps are omitted.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful subscription response; arrays are never null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 0
+                    },
+                    "message": {
+                      "type": "string",
+                      "const": "success"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "active_count": {
+                          "type": "integer"
+                        },
+                        "total_used_usd": {
+                          "type": "number"
+                        },
+                        "subscriptions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "group_id": {
+                                "type": "integer"
+                              },
+                              "group_name": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "daily_used_usd": {
+                                "type": "number"
+                              },
+                              "daily_limit_usd": {
+                                "type": "number"
+                              },
+                              "weekly_used_usd": {
+                                "type": "number"
+                              },
+                              "weekly_limit_usd": {
+                                "type": "number"
+                              },
+                              "monthly_used_usd": {
+                                "type": "number"
+                              },
+                              "monthly_limit_usd": {
+                                "type": "number"
+                              },
+                              "expires_at": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "group_id",
+                              "group_name",
+                              "status"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "active_count",
+                        "total_used_usd",
+                        "subscriptions"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT authentication or bound-session failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        401,
+                        "UNAUTHORIZED",
+                        "INVALID_AUTH_HEADER",
+                        "EMPTY_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "INVALID_TOKEN",
+                        "USER_NOT_FOUND",
+                        "USER_INACTIVE",
+                        "TOKEN_REVOKED",
+                        "SESSION_BINDING_MISMATCH"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Backend mode, ownership or group/count authorization failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "const": 403
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Panel limit or key creation/failed-attempt rate limit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        429,
+                        "RATE_LIMITED"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Positive decimal seconds when panel limiter emits this header; service create rate limits may omit it.",
+                "required": true,
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Repository/auth/settings failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "integer",
+                        "string"
+                      ],
+                      "enum": [
+                        500,
+                        "INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {},
+                      "required": [],
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
