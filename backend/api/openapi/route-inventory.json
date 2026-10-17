@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "baseline": "5fa7524945dfcbfac8906621a327fe3e511d3195",
+  "baseline": "a1d4de9b10054ad082d41588a5db85411cc9ca40",
   "bootstrap": [
     {
       "method": "GET",
@@ -2673,81 +2673,81 @@
       "path": "/api/v1/usage",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/usage/:id",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/usage/dashboard/models",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/usage/dashboard/snapshot-v2",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/usage/dashboard/stats",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/usage/dashboard/trend",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/usage/errors",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/usage/errors/:id",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
       "path": "/api/v1/usage/stats",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
@@ -2763,9 +2763,9 @@
       "path": "/api/v1/user/api-keys/:id/usage/daily",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "GET",
@@ -5274,9 +5274,9 @@
       "path": "/api/v1/usage/dashboard/api-keys-usage",
       "authentication": "jwt",
       "step_up": false,
-      "coverage": "uncovered",
+      "coverage": "covered",
       "owner": "api-contract",
-      "reason": "Pending staged request/response and handler-policy review; registration authentication only."
+      "reason": "A3 whole usageAPI module; production handler/service with isolated repository contract tests; candidate pending independent acceptance."
     },
     {
       "method": "POST",
